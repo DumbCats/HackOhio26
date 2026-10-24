@@ -1,0 +1,246 @@
+{
+ "version": 2,
+ "kind": "hybrid: A5 circuit history + sign-constrained L2 logistic regression (numpy)",
+ "served": "hybrid",
+ "features": [
+  "overhead",
+  "path_len",
+  "section_size",
+  "circ_oh_share",
+  "circ_size",
+  "pole_density",
+  "pole_wood_share",
+  "pole_age",
+  "circ_dmg_per1k",
+  "near_dmg",
+  "path_prior_hits"
+ ],
+ "history_features": [
+  "circ_dmg_per1k",
+  "near_dmg",
+  "path_prior_hits"
+ ],
+ "coef": [
+  0.063331,
+  0.557923,
+  -0.325375,
+  0.0,
+  0.073323,
+  -0.409688,
+  0.099072,
+  0.0,
+  1.0,
+  0.0,
+  0.0
+ ],
+ "transform": "exp",
+ "learned_coef": [
+  0.015346,
+  0.135196,
+  -0.078845,
+  0.0,
+  0.017768,
+  -0.099276,
+  0.024007,
+  0.0,
+  0.0,
+  0.0,
+  0.0
+ ],
+ "learned_intercept": -3.101484,
+ "learned_score_std": 0.242321,
+ "nonneg_features": [
+  "circ_dmg_per1k",
+  "circ_oh_share",
+  "near_dmg",
+  "overhead",
+  "path_len",
+  "path_prior_hits",
+  "pole_age",
+  "pole_wood_share"
+ ],
+ "train_target": "sep2024",
+ "serve_target": "feb2025",
+ "serve_mean": [
+  0.552838,
+  1.611102,
+  4.249979,
+  0.552718,
+  7.202285,
+  3.959552,
+  0.904155,
+  32.362966,
+  0.934501,
+  0.798376,
+  0.119321
+ ],
+ "serve_std": [
+  0.496535,
+  0.24705,
+  1.390239,
+  0.255301,
+  0.53245,
+  0.949176,
+  0.200237,
+  8.581585,
+  0.854228,
+  0.751243,
+  0.352761
+ ],
+ "train_mean": [
+  0.552838,
+  1.611102,
+  4.249979,
+  0.552718,
+  7.202285,
+  3.959552,
+  0.904155,
+  32.362966,
+  0.325617,
+  0.21179,
+  0.030078
+ ],
+ "train_std": [
+  0.496535,
+  0.24705,
+  1.390239,
+  0.255301,
+  0.53245,
+  0.949176,
+  0.200237,
+  8.581585,
+  0.568028,
+  0.419872,
+  0.153286
+ ],
+ "label": "home's upstream chain contains a device mapped from that storm's damage (A2 mapping)",
+ "history_cutoffs": {
+  "sep2024": "2024-09-26",
+  "feb2025": "2025-02-12"
+ },
+ "metrics": {
+  "test_storm": "Feb 2025 (learned part trained on Sep 2024 only)",
+  "train_storm": "Sep 2024",
+  "candidates_test_all_homes": {
+   "baseline": {
+    "auc": 0.676,
+    "high_band_hit_share": 0.3197,
+    "high_band_lift": 2.131,
+    "high_plus_medium_hit_share": 0.6012,
+    "n_homes": 117595,
+    "n_hit": 26163
+   },
+   "learned": {
+    "auc": 0.6471,
+    "high_band_hit_share": 0.2901,
+    "high_band_lift": 1.934,
+    "high_plus_medium_hit_share": 0.5604,
+    "n_homes": 117595,
+    "n_hit": 26163
+   },
+   "hybrid": {
+    "auc": 0.7021,
+    "high_band_hit_share": 0.3314,
+    "high_band_lift": 2.209,
+    "high_plus_medium_hit_share": 0.6239,
+    "n_homes": 117595,
+    "n_hit": 26163
+   }
+  },
+  "candidates_test_banded_homes": {
+   "baseline": {
+    "auc": 0.6603,
+    "high_band_hit_share": 0.2377,
+    "high_band_lift": 1.585,
+    "high_plus_medium_hit_share": 0.5988,
+    "n_homes": 78550,
+    "n_hit": 21311
+   },
+   "learned": {
+    "auc": 0.6541,
+    "high_band_hit_share": 0.2872,
+    "high_band_lift": 1.915,
+    "high_plus_medium_hit_share": 0.5786,
+    "n_homes": 78550,
+    "n_hit": 21311
+   },
+   "hybrid": {
+    "auc": 0.6953,
+    "high_band_hit_share": 0.3047,
+    "high_band_lift": 2.031,
+    "high_plus_medium_hit_share": 0.5925,
+    "n_homes": 78550,
+    "n_hit": 21311
+   }
+  },
+  "learned_train_in_sample": {
+   "auc": 0.629,
+   "high_band_hit_share": 0.3383,
+   "high_band_lift": 2.255,
+   "high_plus_medium_hit_share": 0.5865,
+   "n_homes": 117595,
+   "n_hit": 5195
+  },
+  "train_grouped_cv_auc": 0.603,
+  "cv_auc_by_lambda": {
+   "0.1": 0.5903,
+   "1.0": 0.5903,
+   "10.0": 0.5904,
+   "100.0": 0.5912,
+   "1000.0": 0.5961,
+   "10000.0": 0.603
+  },
+  "lambda": 10000.0,
+  "single_feature_test_auc": {
+   "overhead": 0.4962,
+   "path_len": 0.6518,
+   "section_size": 0.445,
+   "circ_oh_share": 0.4607,
+   "circ_size": 0.5769,
+   "pole_density": 0.3992,
+   "pole_wood_share": 0.547,
+   "pole_age": 0.4584,
+   "circ_dmg_per1k": 0.676,
+   "near_dmg": 0.485,
+   "path_prior_hits": 0.5985
+  },
+  "single_feature_train_auc": {
+   "overhead": 0.4939,
+   "path_len": 0.6276,
+   "section_size": 0.4101,
+   "circ_oh_share": 0.4338,
+   "circ_size": 0.5462,
+   "pole_density": 0.3859,
+   "pole_wood_share": 0.5476,
+   "pole_age": 0.3945,
+   "circ_dmg_per1k": 0.4772,
+   "near_dmg": 0.4404,
+   "path_prior_hits": 0.4943
+  },
+  "hybrid_history_weight_sensitivity": {
+   "0.5": {
+    "auc": 0.6884,
+    "high_band_hit_share": 0.3254,
+    "high_band_lift": 2.169,
+    "high_plus_medium_hit_share": 0.5888,
+    "n_homes": 117595,
+    "n_hit": 26163
+   },
+   "2.0": {
+    "auc": 0.7014,
+    "high_band_hit_share": 0.3398,
+    "high_band_lift": 2.266,
+    "high_plus_medium_hit_share": 0.6006,
+    "n_homes": 117595,
+    "n_hit": 26163
+   }
+  },
+  "served": "hybrid"
+ },
+ "band_cutoffs": {
+  "high": 3.98651323,
+  "medium": 1.01883161,
+  "severity": 0.8,
+  "rule": "score x severity >= high -> High; >= medium -> Medium; else Low"
+ }
+}
