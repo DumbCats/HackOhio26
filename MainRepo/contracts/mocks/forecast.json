@@ -1,0 +1,49 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": -18,
+  "source": "model_estimate",
+  "storm": {
+    "name": "Winter storm",
+    "severity": 0.8,
+    "hours_until_storm": 18,
+    "simulated": true
+  },
+  "risk": {
+    "band": "high",
+    "headline": "Your area is HIGH risk for losing power, compared with nearby homes",
+    "confidence": "high",
+    "confidence_reason": "Lines near you have a long record from past storms.",
+    "factors": [
+      {
+        "label": "Lines near you were damaged often in past storms",
+        "direction": "up",
+        "strength": "strong"
+      },
+      {
+        "label": "Your power comes through overhead lines, which ice and trees can hit",
+        "direction": "up",
+        "strength": "medium"
+      },
+      {
+        "label": "Your home is far down the line, behind several pieces of equipment",
+        "direction": "up",
+        "strength": "weak"
+      }
+    ],
+    "rank_note": "Higher than about 9 in 10 homes in this area. This is a comparison, not a percent chance."
+  },
+  "assumptions": [
+    "Risk comes from where damage happened in earlier storms, not live weather.",
+    "Storm strength is a simulated input."
+  ],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times"
+  ],
+  "what_would_change": [
+    "A weaker storm would lower this band.",
+    "Live weather data could raise or lower it."
+  ],
+  "fallback": null
+}

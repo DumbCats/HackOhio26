@@ -1,0 +1,72 @@
+{
+  "t": 4.5,
+  "source": "simulated_feed",
+  "summary": {
+    "homes_total": 117595,
+    "homes_out": 6120,
+    "active_repairs": 214
+  },
+  "cells": [
+    {
+      "cell_id": "c_0412",
+      "bounds": [
+        [
+          37.285,
+          -79.985
+        ],
+        [
+          37.295,
+          -79.975
+        ]
+      ],
+      "homes": 420,
+      "homes_out": 310,
+      "status": "out",
+      "risk_band": "high"
+    },
+    {
+      "cell_id": "c_0188",
+      "bounds": [
+        [
+          37.265,
+          -79.945
+        ],
+        [
+          37.275,
+          -79.935
+        ]
+      ],
+      "homes": 980,
+      "homes_out": 40,
+      "status": "partial",
+      "risk_band": "medium"
+    },
+    {
+      "cell_id": "c_0907",
+      "bounds": [
+        [
+          37.185,
+          -80.015
+        ],
+        [
+          37.195,
+          -80.005
+        ]
+      ],
+      "homes": 35,
+      "homes_out": 0,
+      "status": "on",
+      "risk_band": "unknown"
+    }
+  ],
+  "assumptions": [
+    "Outages are simulated by replaying real Feb 2025 damage through the real network map."
+  ],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times"
+  ],
+  "what_would_change": [],
+  "fallback": null
+}

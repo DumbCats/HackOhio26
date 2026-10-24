@@ -1,0 +1,52 @@
+{
+  "storm_name": "Winter storm (replay of real Feb 2025 damage)",
+  "simulated": true,
+  "t_min": -24,
+  "t_max": 96,
+  "t_now_default": -18,
+  "moments": [
+    {
+      "t": -18,
+      "key": "forecast",
+      "label": "Storm forecast"
+    },
+    {
+      "t": 4.3,
+      "key": "outage",
+      "label": "Your power goes out"
+    },
+    {
+      "t": 9.5,
+      "key": "update",
+      "label": "Estimate updated"
+    },
+    {
+      "t": 18.4,
+      "key": "restored",
+      "label": "Power restored"
+    }
+  ],
+  "default_home_id": "p_3f9a2c71b04e8d21",
+  "homes": [
+    {
+      "home_id": "p_3f9a2c71b04e8d21",
+      "label": "Maya's home (story)",
+      "cell_id": "c_0412"
+    },
+    {
+      "home_id": "p_8b1d04e2c9a7f310",
+      "label": "Second home",
+      "cell_id": "c_0188"
+    },
+    {
+      "home_id": "p_c27e9f10d35b6a44",
+      "label": "Home with little history",
+      "cell_id": "c_0907"
+    }
+  ],
+  "map_center": [
+    37.25,
+    -79.96
+  ],
+  "map_zoom": 11
+}

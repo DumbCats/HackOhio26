@@ -1,0 +1,113 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": 4.5,
+  "source": "model_estimate",
+  "is_out": true,
+  "out_since_t": 4.3,
+  "restored_at_t": null,
+  "status": {
+    "stage": "assessing",
+    "label": "The damage affecting you has been reported",
+    "source": "simulated_feed",
+    "updated_t": 4.3
+  },
+  "cause": {
+    "label": "Damaged power line upstream of your street",
+    "severity": "major",
+    "repairs_on_your_path": 1,
+    "repairs_on_your_line": 6
+  },
+  "estimate": {
+    "p10_h": 5.7,
+    "p50_h": 8.9,
+    "p90_h": 13.7,
+    "confidence": "medium",
+    "n_sims": 1000,
+    "headline": "Likely back in 6 to 14 hours",
+    "source": "model_estimate"
+  },
+  "utility_etr": null,
+  "chance_back_by": [
+    {
+      "t_from_now_h": 4,
+      "prob": 0.03
+    },
+    {
+      "t_from_now_h": 6,
+      "prob": 0.12
+    },
+    {
+      "t_from_now_h": 8,
+      "prob": 0.35
+    },
+    {
+      "t_from_now_h": 9,
+      "prob": 0.5
+    },
+    {
+      "t_from_now_h": 10,
+      "prob": 0.62
+    },
+    {
+      "t_from_now_h": 12,
+      "prob": 0.8
+    },
+    {
+      "t_from_now_h": 14,
+      "prob": 0.91
+    },
+    {
+      "t_from_now_h": 18,
+      "prob": 0.98
+    }
+  ],
+  "step_restoration": {
+    "your_step": 2,
+    "total_steps": 3,
+    "message": "Repairs happen in steps. Some neighbors may get power back before you."
+  },
+  "drivers": [
+    {
+      "key": "crews_plus_2",
+      "label": "2 more crews on your line",
+      "effect_h": -1.5
+    },
+    {
+      "key": "access_blocked",
+      "label": "Roads blocked by ice or trees",
+      "effect_h": 6.0
+    },
+    {
+      "key": "extra_damage",
+      "label": "1 more damaged spot found",
+      "effect_h": 3.5
+    },
+    {
+      "key": "switching_off",
+      "label": "Crews can't reroute power around damage",
+      "effect_h": 4.0
+    }
+  ],
+  "recap": null,
+  "inputs": {
+    "crews": 2,
+    "access_blocked": false,
+    "extra_damage": 0,
+    "switching": true
+  },
+  "assumptions": [
+    "Repair hours come from AEP's labor table, times 4.5 for travel and setup.",
+    "Crews come from a shared regional pool of 150.",
+    "Not a promise. The utility's confirmed time may differ."
+  ],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times"
+  ],
+  "what_would_change": [
+    "Finding more damage would make this longer.",
+    "More crews would make it shorter."
+  ],
+  "fallback": null
+}

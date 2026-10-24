@@ -1,0 +1,30 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": -18,
+  "source": "simulated_feed",
+  "is_out": false,
+  "out_since_t": null,
+  "restored_at_t": null,
+  "status": null,
+  "cause": null,
+  "estimate": null,
+  "utility_etr": null,
+  "chance_back_by": [],
+  "step_restoration": null,
+  "drivers": [],
+  "recap": null,
+  "inputs": {
+    "crews": 2,
+    "access_blocked": false,
+    "extra_damage": 0,
+    "switching": true
+  },
+  "assumptions": [],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times"
+  ],
+  "what_would_change": [],
+  "fallback": null
+}

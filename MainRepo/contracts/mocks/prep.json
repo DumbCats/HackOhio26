@@ -1,0 +1,52 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": 4.5,
+  "source": "fixed_guidance",
+  "duration_bucket": "4-24h",
+  "emergency_line": "If you see a downed power line, a fire, or someone is hurt, call 911. Stay at least 35 feet away from downed lines.",
+  "safety": [
+    {
+      "id": "s_downed_line",
+      "text": "Treat every downed line as live. Stay at least 35 feet away and keep others away."
+    },
+    {
+      "id": "s_generator",
+      "text": "Run generators outdoors only, at least 20 feet from the house, exhaust pointed away from doors and windows. Never in a garage or basement. Never plug one into a wall outlet. Use a carbon monoxide alarm."
+    },
+    {
+      "id": "s_heat",
+      "text": "Never heat your home with a gas oven, stove, or grill."
+    }
+  ],
+  "actions": [
+    {
+      "id": "a_fridge",
+      "text": "Keep the fridge and freezer closed. Food stays cold about 4 hours in the fridge, 48 hours in a full freezer (24 hours if half full). Throw out perishable food that has been above 40\u00b0F for 2 hours or more.",
+      "when": "now"
+    },
+    {
+      "id": "a_phone",
+      "text": "Turn on your phone's low-power mode. Charge from a power bank, or in a car only when it's outdoors, never in a garage.",
+      "when": "now"
+    },
+    {
+      "id": "a_unplug",
+      "text": "Unplug electronics so they aren't damaged when power returns.",
+      "when": "now"
+    }
+  ],
+  "needs_actions": [
+    {
+      "need": "refrigerated_meds",
+      "text": "Keep insulin in its box, away from heat and from freezing. Many insulins are OK at room temperature (59-86\u00b0F) for up to 28 days, but it varies by brand, so check the label or ask your pharmacist. If you use a cooler, don't let insulin touch ice. Don't use insulin that has frozen."
+    }
+  ],
+  "assumptions": [
+    "Guidance is chosen by expected outage length and the needs you told us. We don't guess anything about you."
+  ],
+  "missing_data": [],
+  "what_would_change": [
+    "A longer estimate adds more steps to this list."
+  ],
+  "fallback": null
+}

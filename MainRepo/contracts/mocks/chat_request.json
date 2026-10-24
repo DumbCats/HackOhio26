@@ -1,0 +1,19 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": 5,
+  "needs": [
+    "refrigerated_meds"
+  ],
+  "severity": 0.8,
+  "crews": null,
+  "access_blocked": false,
+  "extra_damage": 0,
+  "switching": true,
+  "low_power": false,
+  "messages": [
+    {
+      "role": "user",
+      "content": "my power just went out and my insulin is in the fridge, what do i do??"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "reply": "Your power is out because of damage upstream, and it has been reported. Our estimate is 6 to 14 hours from now. That's an estimate, not a promise. For your insulin: keep it in its box, away from heat and from freezing. Many insulins are OK at room temperature for up to 28 days, but it varies by brand, so check the label or ask your pharmacist. If you have an emergency, call 911.",
+  "tools_used": [
+    "get_restoration",
+    "get_prep"
+  ],
+  "safety_flag": false,
+  "source": "llm"
+}

@@ -1,0 +1,36 @@
+{
+  "home_id": "p_c27e9f10d35b6a44",
+  "t": -18,
+  "source": "model_estimate",
+  "storm": {
+    "name": "Winter storm",
+    "severity": 0.8,
+    "hours_until_storm": 18,
+    "simulated": true
+  },
+  "risk": {
+    "band": "unknown",
+    "headline": "We can't predict this reliably",
+    "confidence": "low",
+    "confidence_reason": "There is no past storm damage on record for your line.",
+    "factors": [],
+    "rank_note": null
+  },
+  "assumptions": [
+    "We only show a risk band when we have past storm data for your line."
+  ],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times",
+    "No past storm damage recorded for your line"
+  ],
+  "what_would_change": [
+    "More storm history for your area."
+  ],
+  "fallback": {
+    "reason": "no_history",
+    "message": "We don't have enough history for your area to estimate your risk. Prepare as if you could lose power, and check the official outage map.",
+    "link": "https://www.appalachianpower.com/outages/"
+  }
+}

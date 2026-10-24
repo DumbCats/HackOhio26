@@ -1,0 +1,66 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": 10,
+  "source": "model_estimate",
+  "eligible": true,
+  "rules_fired": [
+    {
+      "rule_id": "R1",
+      "text": "Your area is High risk for this storm, so you get a pre-storm alert."
+    },
+    {
+      "rule_id": "R2",
+      "text": "Damage was reported upstream of your home, so you get an outage alert."
+    },
+    {
+      "rule_id": "R3",
+      "text": "Your estimated return time moved by more than 3 hours, so you get an update."
+    }
+  ],
+  "channels": [
+    {
+      "channel": "push",
+      "why": "Default for app users"
+    },
+    {
+      "channel": "sms",
+      "why": "Works when data is weak or your battery is low"
+    }
+  ],
+  "timeline": [
+    {
+      "type": "pre_storm",
+      "t": -18,
+      "channel": "push",
+      "text": "Winter storm expected tomorrow. Your area is HIGH risk for losing power compared with nearby homes. Charge devices and check your prep list in the app. This is an estimate, not a promise."
+    },
+    {
+      "type": "outage_confirmed",
+      "t": 4.3,
+      "channel": "push",
+      "text": "We know your power is out. The damage affecting you has been reported. Our estimate: back in 6 to 14 hours. Stay away from downed lines."
+    },
+    {
+      "type": "estimate_updated",
+      "t": 9.5,
+      "channel": "sms",
+      "text": "Update: more damage was found on your line, so our estimate moved to 7 to 15 hours from now. We'll message you if it changes again."
+    }
+  ],
+  "escalations": [
+    {
+      "trigger": "You told us about a medical need and the outage may last over 12 hours",
+      "action": "Offer a call from the utility and share local warming or cooling center info."
+    },
+    {
+      "trigger": "Estimated return time moves by more than 3 hours or 25%",
+      "action": "Send an estimate-updated message."
+    }
+  ],
+  "assumptions": [
+    "These alert rules are our documented assumptions, not AEP policy."
+  ],
+  "missing_data": [],
+  "what_would_change": [],
+  "fallback": null
+}

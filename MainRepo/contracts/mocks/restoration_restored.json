@@ -1,0 +1,52 @@
+{
+  "home_id": "p_3f9a2c71b04e8d21",
+  "t": 19,
+  "source": "simulated_feed",
+  "is_out": false,
+  "out_since_t": 4.3,
+  "restored_at_t": 18.4,
+  "status": {
+    "stage": "restored",
+    "label": "Power is back on",
+    "source": "simulated_feed",
+    "updated_t": 18.4
+  },
+  "cause": null,
+  "estimate": null,
+  "utility_etr": null,
+  "chance_back_by": [],
+  "step_restoration": null,
+  "drivers": [],
+  "recap": {
+    "out_since_t": 4.3,
+    "restored_at_t": 18.4,
+    "actual_h": 14.1,
+    "first_estimate": {
+      "made_at_t": 4.3,
+      "back_by_t_low": 10.0,
+      "back_by_t_high": 18.0,
+      "within_range": false
+    },
+    "updated_estimate": {
+      "made_at_t": 9.5,
+      "back_by_t_low": 16.9,
+      "back_by_t_high": 24.7,
+      "within_range": true
+    },
+    "message": "You were out about 14 hours. Our first range was a little early; after new damage was found, the updated range caught it."
+  },
+  "inputs": {
+    "crews": 2,
+    "access_blocked": false,
+    "extra_damage": 0,
+    "switching": true
+  },
+  "assumptions": [],
+  "missing_data": [
+    "No live weather data",
+    "No real crew data",
+    "Past repair records have dates but no times"
+  ],
+  "what_would_change": [],
+  "fallback": null
+}
