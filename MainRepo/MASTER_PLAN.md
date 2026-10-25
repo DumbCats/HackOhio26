@@ -88,33 +88,33 @@ Everything Python runs from the **repo root**: `python -m ingest.build_db`, `uvi
 ## 6. Feature tiers
 
 ### CORE
-- [ ] **C1** Pipeline fixes + additions (§7 A) so the DB has correct circuits, device keys, damage → device, cells, overhead flag. *(A)*
-- [ ] **C2** Simulated feed: storm clock, scheduler, per-home state, map cells. *(A)*
-- [ ] **C3** Mode 1 forecast: band, confidence, 3 plain-English factors. *(B)*
-- [ ] **C4** Mode 2 restoration: Monte Carlo P10-P90 + curve + status stage. *(B)*
-- [ ] **C5** Phone UI: home picker / map tap, summary card that auto-switches Mode 1 → Mode 2 → "Power is back", map, demo panel (clock scrubber, jump-to-moment, severity, battery). *(C)*
-- [ ] **C6** Free-form chat; every number comes from a tool. *(D)*
-- [ ] **C7** Fixed SAFETY card + emergency line, always visible during an outage. *(D text, C UI)*
-- [ ] **C8** The 4 messages appear as notifications when the clock passes them. *(D, C)*
-- [ ] **C9** `tests/test_story.py` passes (§7 D). *(D; A picks the homes)*
+- [x] **C1** Pipeline fixes + additions (§7 A) so the DB has correct circuits, device keys, damage → device, cells, overhead flag. *(A)*
+- [x] **C2** Simulated feed: storm clock, scheduler, per-home state, map cells. *(A)*
+- [x] **C3** Mode 1 forecast: band, confidence, 3 plain-English factors. *(B)*
+- [x] **C4** Mode 2 restoration: Monte Carlo P10-P90 + curve + status stage. *(B)*
+- [x] **C5** Phone UI: home picker / map tap, summary card that auto-switches Mode 1 → Mode 2 → "Power is back", map, demo panel (clock scrubber, jump-to-moment, severity, battery). *(C)*
+- [x] **C6** Free-form chat; every number comes from a tool. *(D)*
+- [x] **C7** Fixed SAFETY card + emergency line, always visible during an outage. *(D text, C UI)*
+- [x] **C8** The 4 messages appear as notifications when the clock passes them. *(D, C)*
+- [x] **C9** `tests/test_story.py` passes (§7 D). *(D; A picks the homes)*
 
 ### NEEDED
-- [ ] **N1** Alert eligibility with the rule that fired, channel, timing, escalation. *(D)*
-- [ ] **N2** Declared needs: medical device, refrigerated medicine, mobility, well water, **critical facility** ("I run a clinic, shelter, or care home") → tailored prep + escalation. *(D, C)*
-- [ ] **N3** "How sure are we?" sheet: confidence, assumptions, missing data, what would change it. Label chip on every number: `Our estimate` / `Simulated utility feed` / `Utility confirmed` (empty in the demo). *(B data, C UI)*
-- [ ] **N4** Fallback home: "We can't predict this reliably" + official outage page link. *(B, C)*
-- [ ] **N5** Low-power mode: dark, text only, no map, no animation; shows status, range, confidence, one next step, safety line. *(C)*
-- [ ] **N6** Step restoration line: "Repairs happen in steps; some neighbors may get power back before you." *(B)*
-- [ ] **N7** Customer-facing **"What could change this?"** card in Mode 2 with crews, roads blocked, switching toggles (the brief wants customers, not just judges, to explore). *(C, B)*
-- [ ] **N8** Network assumption: `switching` toggle. On (default) = only your path's repairs matter. Off = you wait for every repair on your line. *(B)*
-- [ ] **N9** Prep checklist by duration bucket: < 4 h, 4-24 h, 24-72 h, 72 h+. *(D)*
-- [ ] **N10** Privacy test: no endpoint returns raw premise numbers, coordinates finer than a cell, device/circuit ids, crew info, facility locations, or life-support data. *(D)*
-- [ ] **N11** Audit log: every API response and chat turn appends to `logs/audit.jsonl` (endpoint, params minus needs, `source`, seed, tools used). No chat text, no needs. *(D)*
-- [ ] **N12** Chat guardrails: validate input (home_id format, ≤ 1,000 chars); emergency words → fixed 911 text + "request a call back" offer (`safety_flag = true`); number check (every number in the reply must appear in tool output, else send the template answer). *(D)*
-- [ ] **N13** Backtest number for Q&A: rank by pre-Feb damage, score on Feb 2025 (prototype: the High band held about 2.5× its share of later damage). *(B)*
+- [x] **N1** Alert eligibility with the rule that fired, channel, timing, escalation. *(D)*
+- [x] **N2** Declared needs: medical device, refrigerated medicine, mobility, well water, **critical facility** ("I run a clinic, shelter, or care home") → tailored prep + escalation. *(D, C)*
+- [x] **N3** "How sure are we?" sheet: confidence, assumptions, missing data, what would change it. Label chip on every number: `Our estimate` / `Simulated utility feed` / `Utility confirmed` (empty in the demo). *(B data, C UI)*
+- [x] **N4** Fallback home: "We can't predict this reliably" + official outage page link. *(B, C)*
+- [x] **N5** Low-power mode: dark, text only, no map, no animation; shows status, range, confidence, one next step, safety line. *(C)*
+- [x] **N6** Step restoration line: "Repairs happen in steps; some neighbors may get power back before you." *(B)*
+- [x] **N7** Customer-facing **"What could change this?"** card in Mode 2 with crews, roads blocked, switching toggles (the brief wants customers, not just judges, to explore). *(C, B)*
+- [x] **N8** Network assumption: `switching` toggle. On (default) = only your path's repairs matter. Off = you wait for every repair on your line. *(B)*
+- [x] **N9** Prep checklist by duration bucket: < 4 h, 4-24 h, 24-72 h, 72 h+. *(D)*
+- [x] **N10** Privacy test: no endpoint returns raw premise numbers, coordinates finer than a cell, device/circuit ids, crew info, facility locations, or life-support data. *(D)*
+- [x] **N11** Audit log: every API response and chat turn appends to `logs/audit.jsonl` (endpoint, params minus needs, `source`, seed, tools used). No chat text, no needs. *(D)*
+- [x] **N12** Chat guardrails: validate input (home_id format, ≤ 1,000 chars); emergency words → fixed 911 text + "request a call back" offer (`safety_flag = true`); number check (every number in the reply must appear in tool output, else send the template answer). *(D)*
+- [x] **N13** Backtest number for Q&A: rank by pre-Feb damage, score on Feb 2025 (prototype: the High band held about 2.5× its share of later damage). *(B)*
 
 ### NICE (in order)
-**W1** lock-screen notification animation (C) · **W2** auto low-power when battery < 20% via `navigator.getBattery` (C) · **W3** learned risk model trained on replay outages, checked on Sept 2024 (B) · **W4** "why it changed" estimate timeline (B, C) · **W5** neighborhood pulse counts (A, C) · **W6** emergency-facility awareness: "lines serving emergency services are repaired first", counts only (A) · **W7** "what's being fixed" card from the structure drawings (D) · **W8** Spanish / simple-language toggle (D, C).
+**Done:** W2 (battery < 20% → low-power), W3 (learned risk model). **W1** lock-screen notification animation (C) · **W2** auto low-power when battery < 20% via `navigator.getBattery` (C) · **W3** learned risk model trained on replay outages, checked on Sept 2024 (B) · **W4** "why it changed" estimate timeline (B, C) · **W5** neighborhood pulse counts (A, C) · **W6** emergency-facility awareness: "lines serving emergency services are repaired first", counts only (A) · **W7** "what's being fixed" card from the structure drawings (D) · **W8** Spanish / simple-language toggle (D, C).
 
 ### OUT
 Operator console, real SMS/push, accounts, live weather, house-level map points, native app.

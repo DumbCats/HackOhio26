@@ -36,6 +36,9 @@ Every lane builds against this file and `contracts/mocks/*.json`.
 | `GET /api/prep/{home_id}?t=&needs=` + scenario params | D | `app.guidance.prep.get_prep(...)` | `prep.json` |
 | `GET /api/alerts/{home_id}?t=&needs=&low_power=` + scenario params | D | `app.guidance.alerts.get_alerts(...)` | `alerts.json` |
 | `POST /api/chat` | D | `app.chat.service.chat(req)` | `chat_request.json` → `chat_response.json` |
+| `GET /api/home/{home_id}` | A | `app.sim.home.get_home(home_id)` | (added at integration) area label, ~1 km cell `center`, `customers_on_line` ("about 900"), `network_match` |
+| `GET /api/repairs/{home_id}?t=` | A | `app.sim.home.get_repairs(home_id, t)` | (added at integration) repairs on the home's path known at `t`, in repair order: `{order, label, status: done\|in_progress\|waiting, center, reported_t}` |
+| `GET /api/health` | D | | real routers mounted, DB present, LLM key present |
 
 **Which card to show (frontend rule):** call `restoration` first.
 1. `restored_at_t != null` and `t >= restored_at_t` → **Power is back** card (with `recap`).
@@ -43,6 +46,8 @@ Every lane builds against this file and `contracts/mocks/*.json`.
 3. Else → **Mode 1** "Will I lose power?" (`forecast`).
 
 **Mock server rule (D's `app/mock_routes.py`):** forecast → `forecast_fallback.json` for the fallback home id, else `forecast.json`. Restoration → `t < 4.3` not_out, `t >= 18.4` restored, else `restoration.json`. Alerts → timeline filtered to `t ≤ query t`.
+
+**Added at integration (fields only, nothing renamed):** `scenario.homes[].role` (`story|second|fallback`) and `.area`; `prep.phase` (`before|during|after`) and `prep.why`; `alerts.eligibility_summary`, `alerts.rules[]` (`rule_id, name, fired`), `alerts.timeline[].rule_id`, `alerts.escalations[].active`; `restoration.drivers[].active`. Chat returns 404 for an unknown home.
 
 ## 4. Shared response fields
 
