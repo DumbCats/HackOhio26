@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+numpy
+openpyxl
+anthropic
+python-dotenv
+pytest
+httpx
