@@ -27,7 +27,7 @@ Optional: `GEMINI_API_KEY` in `.env` turns on the LLM chat layer. Without it, ch
 | Moment | Clock | What happens |
 |---|---|---|
 | Storm forecast | Wed 6:00 AM (t = -18) | Storm alert push, HIGH risk, 3 reasons, prep list |
-| Your power goes out | Thu 3:47 AM | "We know your power is out", back in 4-11 h, SAFETY card, map dark |
+| Your power goes out | Thu 3:48 AM | "We know your power is out", back in 4-11 h, SAFETY card, map dark |
 | Estimate updated | Thu 9:36 AM | New damage on her path: estimate-updated push; "What could change this?" |
 | Power restored | Thu 6:24 PM | "Power is back" + recap: first range early, updated range caught it |
 
