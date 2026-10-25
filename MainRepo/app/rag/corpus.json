@@ -1,0 +1,377 @@
+{
+  "version": 1,
+  "note": "Approved plain-language explanations for the chat. Every fact comes from MASTER_PLAN.md, docs/DATA_FACTS.md or contracts/API.md (see 'basis'). No safety or medical instructions here: those are fixed strings in get_prep. No ids, coordinates, line names or crew details.",
+  "passages": [
+    {
+      "id": "risk_band_meaning",
+      "title": "What the risk band means",
+      "text": "Your risk band (Low, Medium or High) compares your area with nearby homes in this region. It is not a percent chance that you will lose power. High means your area is among the homes most likely to be hit, based on where damage happened in past storms.",
+      "tags": ["risk", "band", "high", "medium", "low", "chance", "likely", "compare", "nearby"],
+      "basis": "MASTER_PLAN A5; CLAUDE.md rule 6; API.md §4"
+    },
+    {
+      "id": "risk_band_not_percent",
+      "title": "Why we don't give a percent chance",
+      "text": "We show a band instead of a percent because our data comes from one region and two big storms. A percent would sound more exact than our data allows. The band is an honest comparison with nearby homes, not a promise either way.",
+      "tags": ["risk", "percent", "percentage", "odds", "probability", "chance", "exact", "number"],
+      "basis": "MASTER_PLAN A5, A10; CLAUDE.md rule 6"
+    },
+    {
+      "id": "risk_band_basis",
+      "title": "What the risk band is based on",
+      "text": "The band comes from a model that learned from past storm damage in this area. It looks at how often lines near you were damaged in earlier storms, whether your power comes through overhead lines, and how far down the line your home is. It only uses storms before the one being replayed, so it never peeks at the storm it is predicting.",
+      "tags": ["risk", "band", "model", "why", "based", "factors", "reason", "high", "history", "past storms"],
+      "basis": "MASTER_PLAN A5, W3; contracts/mocks/forecast.json factors"
+    },
+    {
+      "id": "risk_band_cutoffs",
+      "title": "How homes are sorted into bands",
+      "text": "At the default storm strength, roughly the top 15 of every 100 homes in the area are High and the next 25 of every 100 are Medium. The rest are Low. When the storm strength changes, scores are compared with those same fixed cutoffs, so a stronger storm can move your band up.",
+      "tags": ["risk", "band", "cutoff", "sorted", "high", "medium", "low", "top", "ranking"],
+      "basis": "MASTER_PLAN A5"
+    },
+    {
+      "id": "risk_storm_strength",
+      "title": "Why the band moves with storm strength",
+      "text": "We do not have live weather data, so storm strength is a simulated input you can change. A stronger storm can raise your band and a weaker storm can lower it. Live weather data could raise or lower it too.",
+      "tags": ["risk", "storm", "strength", "severity", "slider", "weather", "change", "band"],
+      "basis": "MASTER_PLAN §3, A5; contracts/mocks/forecast.json what_would_change"
+    },
+    {
+      "id": "risk_overhead_lines",
+      "title": "Why overhead lines matter",
+      "text": "If your power comes through overhead lines, ice and trees can hit them during a storm. That is one of the things that can raise your band. We know whether each home is served by overhead or underground lines from the utility's records.",
+      "tags": ["overhead", "underground", "lines", "ice", "trees", "risk", "factor", "wires"],
+      "basis": "MASTER_PLAN §3; contracts/mocks/forecast.json factors; DATA_FACTS §1"
+    },
+    {
+      "id": "risk_far_down_line",
+      "title": "Why being far down the line matters",
+      "text": "Power reaches your home through a chain of equipment that starts at a substation. If your home is far down the line, behind several pieces of equipment, damage at any of them can cut your power. That can raise your band a little.",
+      "tags": ["path", "equipment", "far", "line", "substation", "risk", "factor", "chain", "upstream"],
+      "basis": "MASTER_PLAN A5; DATA_FACTS §3; contracts/mocks/forecast.json factors"
+    },
+    {
+      "id": "risk_backtest",
+      "title": "How well the risk band held up",
+      "text": "We checked the idea by ranking homes using only damage from before February 2025, then looking at what the February 2025 storm actually hit. In our early prototype, the High band got about 2.5 times its share of the later damage. That is a check on one storm, not a guarantee.",
+      "tags": ["accurate", "accuracy", "test", "backtest", "proof", "trust", "work", "risk", "check", "good"],
+      "basis": "MASTER_PLAN N13"
+    },
+    {
+      "id": "confidence_levels",
+      "title": "What the confidence level means",
+      "text": "Confidence tells you how much history we have for your line. High means the line serving your home has at least 3 past damage records and we can trace the equipment that feeds your home. Low means fewer than 3 records, so we still show a band but with a limited history note.",
+      "tags": ["confidence", "sure", "certain", "trust", "reliable", "accurate", "how sure", "limited history"],
+      "basis": "MASTER_PLAN A6, N3"
+    },
+    {
+      "id": "fallback_cant_predict",
+      "title": "Why it says \"We can't predict this reliably\"",
+      "text": "Sometimes there are no past damage records on the line serving your home, or we could not trace which equipment feeds it. In that case we do not guess. We show no band and link you to the official outage page instead. It does not mean your home is safe or unsafe, only that we lack the history to say.",
+      "tags": ["fallback", "can't predict", "cannot", "unknown", "no band", "reliably", "my area", "why not", "missing"],
+      "basis": "MASTER_PLAN A6, N4; API.md §4 fallback"
+    },
+    {
+      "id": "official_outage_page",
+      "title": "Where to find the official outage information",
+      "text": "This app is a demo and is not the utility's official outage system. For official outage reports and updates, use the Appalachian Power outage page at https://www.appalachianpower.com/outages/.",
+      "tags": ["official", "outage page", "report", "utility", "website", "link", "appalachian power", "real"],
+      "basis": "API.md §4 fallback link; MASTER_PLAN §3"
+    },
+    {
+      "id": "restoration_range_how",
+      "title": "How we estimate when your power comes back",
+      "text": "We list the repairs reported on your line that are not fixed yet. We estimate how long each repair takes, decide which crews work on what, and run the whole thing 1,000 times with small random differences. The range you see, like \"likely back in 6 to 14 hours\", covers the middle 80 of every 100 simulated runs.",
+      "tags": ["restoration", "estimate", "range", "when", "back", "eta", "how long", "hours", "simulation", "time"],
+      "basis": "MASTER_PLAN Lane B 2, CLAUDE.md rule 6; contracts/mocks/restoration.json"
+    },
+    {
+      "id": "restoration_why_range",
+      "title": "Why we give a range, not one time",
+      "text": "Repairs take different amounts of time, and new damage can be found. A single time would sound more certain than it is. A range is more honest: it is an estimate, not a promise, and the utility's confirmed time may differ.",
+      "tags": ["range", "exact time", "single", "promise", "restoration", "why", "estimate", "guarantee"],
+      "basis": "CLAUDE.md rule 6; contracts/mocks/restoration.json assumptions"
+    },
+    {
+      "id": "repair_hours_labor",
+      "title": "Where the repair hours come from",
+      "text": "Repair times come from AEP's labor workbook, which lists the hands-on hours to install and remove each kind of equipment, such as about 4.8 hours for a pole. We add extra time when a site is hard to reach or needs special equipment, then multiply by 4.5 for travel and setup, as the workbook does. Some wire hours are best guesses because the workbook has no wire unit.",
+      "tags": ["repair", "hours", "labor", "workbook", "how long", "pole", "time", "4.5", "job"],
+      "basis": "MASTER_PLAN A3; DATA_FACTS §7; contracts/mocks/restoration.json assumptions"
+    },
+    {
+      "id": "crews_pool",
+      "title": "How we count repair crews",
+      "text": "We do not have real crew data. We assume one shared regional pool of 150 crews, split across lines by how much repair work each line has, with at least 1 crew per line. On each line, crews start with repairs closest to the substation, then the ones that bring back the most homes.",
+      "tags": ["crews", "crew", "workers", "trucks", "pool", "150", "who", "order", "first", "priority"],
+      "basis": "MASTER_PLAN A4, §3"
+    },
+    {
+      "id": "crews_calibration",
+      "title": "How we checked the crew assumption",
+      "text": "We compared our replay with the real repair dates. In our replay, about 38 of every 100 jobs are fixed the same day, 38 the next day, 16 after 2 days and 7 after 3 or more. The real records show 39, 33, 18 and 10. That is close, but not exact.",
+      "tags": ["crews", "calibration", "check", "accurate", "trust", "real", "compare", "days", "validate"],
+      "basis": "MASTER_PLAN A4"
+    },
+    {
+      "id": "estimate_changes",
+      "title": "Why your estimate changed",
+      "text": "Our estimate only knows about damage reported so far. When crews find new damage on your line, the range can jump later, and you get an \"estimate updated\" message. As repairs move forward, jobs already in progress only count their remaining time, so the range can also get shorter.",
+      "tags": ["changed", "change", "update", "updated", "moved", "later", "longer", "jumped", "new damage", "different"],
+      "basis": "MASTER_PLAN A13, §2 beat 5"
+    },
+    {
+      "id": "estimate_feed_gap",
+      "title": "Why the estimate and the outage feed can disagree",
+      "text": "The simulated outage feed is one fixed run that uses all the storm damage. Your estimate only sees damage reported up to now, just as a real customer would. That gap is why an estimate can change when new damage turns up.",
+      "tags": ["feed", "estimate", "disagree", "different", "truth", "changed", "simulated"],
+      "basis": "MASTER_PLAN A13"
+    },
+    {
+      "id": "step_restoration",
+      "title": "Why neighbors may get power back first",
+      "text": "Repairs happen in steps. Each home depends on the equipment between it and the substation, and a neighbor on a different branch may have fewer repairs in the way. So some neighbors may get power back before you, even on the same street.",
+      "tags": ["neighbor", "neighbors", "next door", "street", "first", "before me", "steps", "step", "why me", "across"],
+      "basis": "MASTER_PLAN N6, A2; contracts/mocks/restoration.json step_restoration"
+    },
+    {
+      "id": "switching_assumption",
+      "title": "What the switching setting means",
+      "text": "Switching is a network assumption. When it is on (the default), we assume crews can reroute power around damage, so only the repairs on your home's own path matter. When it is off, you wait for every repair on your line, which usually makes the estimate longer.",
+      "tags": ["switching", "reroute", "network", "assumption", "setting", "toggle", "path", "line"],
+      "basis": "MASTER_PLAN N8; API.md §2"
+    },
+    {
+      "id": "what_could_change",
+      "title": "What the \"What could change this?\" card does",
+      "text": "This card lets you try what-ifs: more crews on your line, roads blocked by ice or trees, more damage found, or switching turned off. Each one re-runs our estimate. These change our estimate only, never the simulated outage feed.",
+      "tags": ["what could change", "what if", "scenario", "crews", "roads", "blocked", "switching", "card", "try"],
+      "basis": "MASTER_PLAN N7, A13"
+    },
+    {
+      "id": "roads_blocked",
+      "title": "What \"roads blocked\" does to the estimate",
+      "text": "When you turn on roads blocked by ice or trees, each repair gets between 2 and 8 extra hours in our simulation. That stands in for crews having trouble reaching the damage. The real records also note when a repair had an access issue.",
+      "tags": ["roads", "blocked", "ice", "trees", "access", "reach", "delay", "longer"],
+      "basis": "MASTER_PLAN Lane B 2, §3"
+    },
+    {
+      "id": "status_stages",
+      "title": "What the status steps mean",
+      "text": "The status tracker moves through four steps: damage reported and being assessed, crew assigned, repairing, and restored. In this demo, these steps come from the simulated outage feed, not real crew tracking. We never show crew names, locations or ids.",
+      "tags": ["status", "stage", "steps", "assessing", "crew assigned", "repairing", "restored", "tracker", "progress"],
+      "basis": "API.md §4 status.stage; MASTER_PLAN §3"
+    },
+    {
+      "id": "how_we_know_out",
+      "title": "How we know your power is out",
+      "text": "In this demo, a damaged piece of equipment knocks out every home that gets power through it, from when it is reported until it is fixed. We trace each damage record to the equipment and homes it feeds, which works for about 99 of every 100 records. In the replay, about 26,000 homes lose power.",
+      "tags": ["out", "outage", "know", "how", "detect", "lost power", "lights out", "why out"],
+      "basis": "MASTER_PLAN A2; DATA_FACTS §4"
+    },
+    {
+      "id": "how_we_know_back",
+      "title": "How we know your power is back",
+      "text": "In this demo, the simulated outage feed marks your home restored when the last repair on your home's path is finished. Then the app shows \"Power's back\" with a recap that compares our first range with what happened. A real system would confirm it with live data from the utility.",
+      "tags": ["back", "restored", "on again", "know", "power back", "recap", "how"],
+      "basis": "MASTER_PLAN Lane B 2, §2 beat 6; API.md §3"
+    },
+    {
+      "id": "recap_honesty",
+      "title": "Why we show our range next to what happened",
+      "text": "When power comes back, the recap puts our first estimate next to the actual restore time in the replay. We show it even when we were off. It helps you judge how much to trust the next estimate.",
+      "tags": ["recap", "honesty", "compare", "actual", "wrong", "right", "accurate", "trust"],
+      "basis": "MASTER_PLAN §2 beat 6; API.md §4"
+    },
+    {
+      "id": "real_vs_simulated",
+      "title": "What is real and what is simulated",
+      "text": "Real: past damage records (where, what broke, access issues), the homes and which line serves each, overhead or underground service, the equipment feeding each home, and repair labor hours. Simulated: the live outage feed, crew status, and the weather, which is a storm strength setting. Utility-confirmed restore times are not available in the demo.",
+      "tags": ["real", "simulated", "fake", "demo", "actual", "data", "true", "made up", "live"],
+      "basis": "MASTER_PLAN §3"
+    },
+    {
+      "id": "simulated_feed_replay",
+      "title": "Is this the real outage map?",
+      "text": "No. The map and outage feed in this demo replay real damage from the February 2025 winter storm on a clock, through the real power network. They are not the utility's live outage map. The map shows areas about 1 km across and hides areas with fewer than 10 homes.",
+      "tags": ["map", "outage map", "real", "live", "replay", "simulated", "feed", "actual", "area", "dark"],
+      "basis": "MASTER_PLAN §3, A1; API.md §1, §4"
+    },
+    {
+      "id": "storm_clock",
+      "title": "What the storm clock is",
+      "text": "The demo runs on a storm clock that counts hours from midnight on February 13, 2025. It replays about 1,229 damage records reported from February 13 to 18, 2025. The records only have dates, so each one is given a fixed random hour within its report day.",
+      "tags": ["clock", "time", "storm clock", "hours", "replay", "february", "when", "demo"],
+      "basis": "MASTER_PLAN A1"
+    },
+    {
+      "id": "label_our_estimate",
+      "title": "What \"Our estimate\" means",
+      "text": "\"Our estimate\" marks a number our own models computed from real AEP data, like your risk band or restoration range. It is not from the utility and it is not a promise. Every number in the app carries a label so you know where it came from.",
+      "tags": ["label", "our estimate", "model estimate", "chip", "tag", "source", "meaning"],
+      "basis": "API.md §4; CLAUDE.md rule 6"
+    },
+    {
+      "id": "label_simulated_feed",
+      "title": "What \"Simulated utility feed\" means",
+      "text": "\"Simulated utility feed\" marks information from our replay of the February 2025 storm, such as whether your power is out and the status steps. It stands in for the live feed a utility would have. It is not live data.",
+      "tags": ["label", "simulated utility feed", "simulated feed", "chip", "source", "meaning", "replay"],
+      "basis": "API.md §4; MASTER_PLAN §3"
+    },
+    {
+      "id": "label_utility_confirmed",
+      "title": "What \"Utility confirmed\" means",
+      "text": "\"Utility confirmed\" would mark a restore time given by the utility itself. The app has a place for it, but in this demo it is always empty, because we do not have the utility's confirmed times.",
+      "tags": ["label", "utility confirmed", "confirmed", "official", "chip", "source", "meaning"],
+      "basis": "API.md §4; MASTER_PLAN §3, N3"
+    },
+    {
+      "id": "label_safety_guidance",
+      "title": "What \"Safety guidance\" means",
+      "text": "\"Safety guidance\" marks safety and medical wording that was written and reviewed ahead of time. The assistant quotes it as written and never makes it up.",
+      "tags": ["label", "safety guidance", "fixed", "chip", "source", "meaning", "guidance"],
+      "basis": "API.md §4; CLAUDE.md rule 4"
+    },
+    {
+      "id": "utility_confirmed_missing",
+      "title": "Why there is no utility-confirmed time",
+      "text": "In a real outage the utility may post its own estimated restore time. This demo does not have that data, so the utility-confirmed time is always empty. The range you see is our estimate, and the utility's confirmed time may differ.",
+      "tags": ["utility confirmed", "official time", "etr", "missing", "no time", "aep time", "confirmed"],
+      "basis": "MASTER_PLAN §3; contracts/mocks/restoration.json"
+    },
+    {
+      "id": "data_sources",
+      "title": "Where our data comes from",
+      "text": "We use AEP's real records: 1,659 past damage records (from a system called ARCOS), a list of 117,642 homes with the line that serves each, a network map showing which equipment feeds each home, and AEP's labor workbook for repair hours. Homes are identified only by scrambled codes.",
+      "tags": ["data", "source", "sources", "where", "records", "arcos", "network", "workbook", "come from"],
+      "basis": "MASTER_PLAN §3; DATA_FACTS §1, §3, §7"
+    },
+    {
+      "id": "damage_records",
+      "title": "What the damage records contain",
+      "text": "Each damage record says roughly where the damage was, what broke (for example a power line, a pole, fuse equipment or a transformer), whether there was an access issue, whether special equipment was needed, and the dates it was reported and repaired. The records have dates but no times of day.",
+      "tags": ["damage", "records", "arcos", "what broke", "history", "contain", "pole", "transformer"],
+      "basis": "MASTER_PLAN §3; DATA_FACTS §7, §8"
+    },
+    {
+      "id": "storms_in_data",
+      "title": "Which storms are in the data",
+      "text": "The data covers one region, Appalachian Power's area around Roanoke, Virginia, and two big storms: the February 2025 winter storm and a September 2024 storm. The demo replays the February 2025 storm. We don't claim the results hold for other places or storms.",
+      "tags": ["storms", "storm", "february 2025", "september 2024", "region", "roanoke", "virginia", "which", "area"],
+      "basis": "MASTER_PLAN A10, A1"
+    },
+    {
+      "id": "region_scope",
+      "title": "Does this work where I live?",
+      "text": "This demo only covers homes in one region around Roanoke, Virginia, in AEP's Appalachian Power area. If you live elsewhere, it cannot tell you anything about your home. For any area, the official outage page is the right place to check.",
+      "tags": ["where", "my area", "region", "cover", "coverage", "work", "live", "location", "outside"],
+      "basis": "MASTER_PLAN A10; DATA_FACTS §1"
+    },
+    {
+      "id": "missing_weather",
+      "title": "Why we don't use live weather",
+      "text": "We do not have live weather or forecast data. The storm strength is a simulated setting instead. Live weather feeds would make the risk band better.",
+      "tags": ["weather", "forecast", "live", "missing", "wind", "ice", "rain", "storm strength"],
+      "basis": "MASTER_PLAN §3; API.md §4 missing_data"
+    },
+    {
+      "id": "missing_crew_data",
+      "title": "Why there is no real crew information",
+      "text": "The crew fields in the damage records are empty, so we have no real crew data. Crew status in the app is simulated. We never show crew names, locations or ids.",
+      "tags": ["crew", "crews", "where are", "truck", "workers", "location", "real", "missing"],
+      "basis": "MASTER_PLAN §3; CLAUDE.md rule 5"
+    },
+    {
+      "id": "missing_repair_times",
+      "title": "Why repair records only have dates",
+      "text": "Past repair records show the day damage was reported and the day it was fixed, but not the hour. So we get repair hours from the labor workbook and use the dates to check our crew numbers. In the February 2025 storm, half the repairs were marked fixed within 1 day of the report and 9 in 10 within 2 days.",
+      "tags": ["repair", "dates", "times", "history", "how long", "days", "missing", "typical", "february"],
+      "basis": "MASTER_PLAN §3, A4; DATA_FACTS §8"
+    },
+    {
+      "id": "duration_exclusions",
+      "title": "Which records we leave out of repair-time numbers",
+      "text": "For repair-time numbers we leave out 76 records not marked as repaired and 138 records that were all closed on one date in October 2024, which looks like a bulk clean-up. Those records still count as past damage, just not for how long repairs take.",
+      "tags": ["excluded", "left out", "repair time", "records", "clean", "dates", "stats"],
+      "basis": "MASTER_PLAN A9; DATA_FACTS §8"
+    },
+    {
+      "id": "line_history_meaning",
+      "title": "What \"past damage on your line\" means",
+      "text": "Line history counts past damage records on the power line that serves your home, using only records from before the current time on the storm clock. \"Lines like yours\" groups a few other lines with a similar number of homes, equipment chain and damage history. They are added together and never named.",
+      "tags": ["history", "past damage", "line", "my line", "before", "lines like yours", "similar", "record"],
+      "basis": "MASTER_PLAN A5, A6, §3"
+    },
+    {
+      "id": "privacy_never_shown",
+      "title": "What we never show",
+      "text": "We never show street addresses, house numbers or road names, exact locations (only areas about 1 km across), equipment or line ids, crew information, the locations of hospitals, fire stations or ambulances, or life-support flags from utility records. Your home is shown by a scrambled code, not your address.",
+      "tags": ["privacy", "private", "my data", "personal", "address", "location", "shown", "hidden", "safe"],
+      "basis": "CLAUDE.md rule 5; MASTER_PLAN N10; API.md §1"
+    },
+    {
+      "id": "privacy_home_code",
+      "title": "How your home is identified",
+      "text": "Each home is identified by a one-way scrambled code made from the utility's premise number with a secret salt. The code cannot be turned back into your address. Map areas are grouped into cells about 1 km across.",
+      "tags": ["privacy", "home id", "code", "identify", "address", "anonymous", "hash", "my data"],
+      "basis": "API.md §1; MASTER_PLAN §3"
+    },
+    {
+      "id": "declared_needs",
+      "title": "What happens to the needs you tell us",
+      "text": "You can tell the app about a medical device, refrigerated medicine, mobility needs, well water, or a critical facility like a clinic, shelter or care home. These come only from your own choices, are sent with each request to tailor the guidance, and are never stored or logged. We never use the utility's life-support records about a person.",
+      "tags": ["needs", "medical info", "store", "stored", "keep", "save", "private", "my data", "insulin", "share"],
+      "basis": "MASTER_PLAN A8, N2"
+    },
+    {
+      "id": "audit_log",
+      "title": "What the app logs",
+      "text": "For checking the system, the app logs which screen or tool was used, the settings, the source label and the random seed. It does not log your chat messages or any needs you declared.",
+      "tags": ["log", "logs", "logging", "record", "track", "store", "chat", "privacy", "save"],
+      "basis": "MASTER_PLAN N11"
+    },
+    {
+      "id": "chat_how_it_works",
+      "title": "How the assistant answers",
+      "text": "The assistant only talks. Every number it gives comes from our code, such as the risk band or the restoration range. Safety and medical wording is fixed text written in advance. If the AI is not available, you get answers built from the same numbers.",
+      "tags": ["assistant", "ai", "chat", "bot", "answer", "numbers", "trust", "how", "made up"],
+      "basis": "MASTER_PLAN §1, A11, C6; CLAUDE.md rule 4"
+    },
+    {
+      "id": "same_answer_each_time",
+      "title": "Why you get the same numbers each time",
+      "text": "Our simulations use fixed random seeds, so the same inputs always give the same results. If a number changes, it is because something changed, like the storm clock or a what-if setting.",
+      "tags": ["same", "consistent", "random", "seed", "repeat", "change", "deterministic"],
+      "basis": "CLAUDE.md rule 7; API.md §1"
+    },
+    {
+      "id": "alerts_how",
+      "title": "When the app sends alerts",
+      "text": "The app sends a pre-storm alert when your band is Medium or High, a message when your outage is confirmed, an \"estimate updated\" message when the expected time moves by more than 3 hours or more than a quarter, and a message when power is back. These rules are our own design for the demo, not AEP policy.",
+      "tags": ["alerts", "alert", "notification", "message", "text", "sms", "push", "notify", "when"],
+      "basis": "MASTER_PLAN A7, Lane D 3"
+    },
+    {
+      "id": "alert_channels",
+      "title": "How alerts reach you",
+      "text": "Alerts come as push notifications by default, and as text messages when your phone is in low-power mode. If you declared a medical need or a critical facility and the outage may last more than 12 hours, the app offers a call. These are demo rules, not AEP policy.",
+      "tags": ["alerts", "channel", "push", "sms", "text", "call", "phone", "notification", "how"],
+      "basis": "MASTER_PLAN Lane D 3, A7"
+    },
+    {
+      "id": "low_power_mode",
+      "title": "What low-power mode does",
+      "text": "Low-power mode saves your battery: dark screen, text only, no map and no animation. It still shows your status, the restoration range, the confidence, one next step and the safety line.",
+      "tags": ["low power", "battery", "dark", "save", "mode", "phone", "text only"],
+      "basis": "MASTER_PLAN N5"
+    },
+    {
+      "id": "what_would_improve",
+      "title": "What would make this better",
+      "text": "Live weather feeds would sharpen the risk band. Smart-meter pings would show right away when a home loses or gets back power. A true history of restore times, with hours and not just dates, and real crew data would make the restoration range tighter.",
+      "tags": ["improve", "better", "future", "next", "missing", "weather", "smart meter", "limitations"],
+      "basis": "MASTER_PLAN §3; API.md §4 missing_data"
+    }
+  ]
+}
