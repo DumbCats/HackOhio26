@@ -10,7 +10,7 @@ HOME_ID_RE = re.compile(r"^p_[0-9a-f]{16}$")
 EMERGENCY_REPLY = (
     "If someone is hurt, you smell smoke or gas, or you see a fire or a downed power line, "
     "call 911 now. Stay at least 35 feet away from downed lines and treat every one as live. "
-    "Want a call back from the utility? Tell me and I'll note the request."
+    "To reach the utility about your outage, use its outage page: https://www.appalachianpower.com/outages/"
 )
 
 MEDICAL_DEVICE_REPLY = (

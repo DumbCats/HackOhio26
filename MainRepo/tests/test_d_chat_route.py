@@ -42,3 +42,11 @@ def test_bad_requests_are_400():
         r = client.post("/api/chat", json=req)
         assert r.status_code == 400, req
         assert r.json()["detail"]
+
+
+def test_emergency_reply_promises_nothing_that_does_not_exist():
+    from app.chat import guardrails
+    text = guardrails.EMERGENCY_REPLY.lower()
+    assert "call 911" in text and "35 feet" in text
+    assert "note the request" not in text and "call back" not in text
+    assert "https://www.appalachianpower.com/outages/" in guardrails.EMERGENCY_REPLY
