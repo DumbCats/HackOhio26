@@ -27,7 +27,7 @@ OUTAGE_LINK = "https://www.appalachianpower.com/outages/"
 
 COMMON_MISSING_DATA = [
     "No live weather data",
-    "No real crew data",
+    "No crew location data",
     "Past repair records have dates but no times",
 ]
 

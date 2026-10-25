@@ -30,7 +30,7 @@ def get_scenario() -> dict:
             out_homes.append({"home_id": h["home_id"], "label": h["label"], "cell_id": cid,
                               "area": area_label(cid), "role": key})
     return {
-        "storm_name": "Winter storm (replay of real Feb 2025 damage)",
+        "storm_name": "Winter storm",
         "simulated": True,
         "t_min": -24, "t_max": 96, "t_now_default": -18,
         "moments": moments,

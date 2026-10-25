@@ -71,7 +71,7 @@ export function StatusCard({ mode, r, f, home, lastUpdate, onChange, onTrust }: 
         </div>
         <div className="row-foot muted">
           <span>Utility-confirmed time</span>
-          <span><SourceChip source="utility_confirmed" muted /> not available in this demo</span>
+          <span><SourceChip source="utility_confirmed" muted /> not posted yet</span>
         </div>
       </div>
 

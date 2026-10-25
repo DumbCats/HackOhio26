@@ -285,8 +285,7 @@ def get_forecast(home_id: str, t: float = 0, severity: float = DEFAULT_SEVERITY)
         "risk": risk,
         "assumptions": [
             "Risk comes from where damage happened in earlier storms, not live weather.",
-            "Storm strength is a simulated input.",
-            "The ranking learned from the September 2024 storm and was checked against February 2025.",
+            "Risk compares your area with nearby homes; it is not a percent chance.",
         ],
         "missing_data": missing,
         "what_would_change": what,

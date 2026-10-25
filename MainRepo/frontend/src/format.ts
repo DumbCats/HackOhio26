@@ -31,7 +31,7 @@ export function rangeLabel(p10: number, p90: number): string {
 
 export const SOURCE_LABEL: Record<Source, string> = {
   model_estimate: "Our estimate",
-  simulated_feed: "Simulated utility feed",
+  simulated_feed: "Utility feed",
   utility_confirmed: "Utility confirmed",
   fixed_guidance: "Safety guidance",
   llm: "AI answer · numbers from our tools",

@@ -83,7 +83,7 @@ export default function App() {
       } catch (e) {
         if ((e as Error).name === "AbortError") return;
         if (String((e as Error).message).startsWith("404")) {
-          setError("We don't recognize that location. Showing the demo home instead.");
+          setError("We don't recognize that location. Showing your saved location instead.");
           setC((p) => (p && scn ? { ...p, homeId: scn.default_home_id } : p));
         } else setError("We can't reach the outage service right now.");
       }
@@ -146,7 +146,6 @@ export default function App() {
 
   const { forecast: f, restoration: r, prep, alerts, home, repairs, map } = data;
   const mode = modeOf(r, c.t);
-  const homeLabel = scn.homes.find((h) => h.home_id === c.homeId);
   const center = home?.center ?? scn.map_center;
   const layer = mode === "forecast" ? "risk" : "repairs";
   const idx = stageIndex(r?.status?.stage, !!r?.is_out, mode === "restored");
@@ -203,7 +202,7 @@ export default function App() {
               <div>
                 <h1>Outage Outlook</h1>
                 <button className="home-btn" onClick={() => setSheet("home")} aria-haspopup="dialog">
-                  {homeLabel ? `${homeLabel.label} · ${home?.area ?? ""}` : `${home?.area ?? "Your area"} (anonymized)`}
+                  {home?.area ?? "Your area"}
                   <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.6" fill="none" /></svg>
                 </button>
               </div>
@@ -213,7 +212,6 @@ export default function App() {
             </header>
             <div className="clock-strip">
               <span>{clockLabel(c.t)}</span>
-              <span className="muted">Simulated storm replay (Feb 2025 damage)</span>
             </div>
             {error && <div className="warn-banner" role="alert">{error}{error.startsWith("We can't reach") ? " Showing the last update." : ""}</div>}
 
@@ -262,7 +260,6 @@ export default function App() {
               <button onClick={() => setSheet("trust")}><b>How sure are we?</b><small>Confidence & data</small></button>
               {mode === "outage" && <button onClick={() => setSheet("change")}><b>What could change this?</b><small>Crews, roads</small></button>}
             </nav>
-            <p className="foot-note">Demo with anonymized AEP data. Not an official outage service.</p>
             <div className="chat-spacer" />
           </main>
         )}

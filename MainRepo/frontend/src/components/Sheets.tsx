@@ -107,17 +107,6 @@ export function AlertsSheet({ alerts, onClose }: { alerts: Alerts | null; onClos
   );
 }
 
-const REAL_VS_SIM: [string, string, "real" | "sim" | "none"][] = [
-  ["Past storm damage (where, what broke)", "AEP damage records", "real"],
-  ["Homes, lines, and the equipment feeding each home", "AEP network map, anonymized", "real"],
-  ["Repair labor hours", "AEP labor table", "real"],
-  ["Live outage feed", "replay of the Feb 2025 storm", "sim"],
-  ["Crew status", "stage only, no crew details", "sim"],
-  ["Weather", "a storm-strength setting", "sim"],
-  ["Utility-confirmed restore time", "not in this demo", "none"],
-];
-const RV_LABEL = { real: "Real", sim: "Simulated", none: "Missing" };
-
 export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restoration | null; onClose: () => void }) {
   const uniq = (xs: string[]) => [...new Set(xs)];
   const assumptions = uniq([...(r?.estimate ? r.assumptions : []), ...(f?.assumptions ?? [])]);
@@ -129,7 +118,7 @@ export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restorati
         {f && !f.fallback && <p><b>Risk band:</b> {f.risk.confidence} confidence. {f.risk.confidence_reason}</p>}
         {f?.fallback && <p><b>Risk band:</b> {f.fallback.message}</p>}
         {r?.recap && <p><b>Return time:</b> {r.recap.message}</p>}
-        {r?.estimate && <p><b>Return time:</b> {r.estimate.confidence} confidence, from {r.estimate.n_sims.toLocaleString()} simulated repair runs. The range {rangeLabel(r.estimate.p10_h, r.estimate.p90_h)} covers the middle 8 in 10 of them.</p>}
+        {r?.estimate && <p><b>Return time:</b> {r.estimate.confidence} confidence, from {r.estimate.n_sims.toLocaleString()} possible repair scenarios. The range {rangeLabel(r.estimate.p10_h, r.estimate.p90_h)} covers the middle 8 in 10 of them.</p>}
         <p className="muted">Risk is a comparison with nearby homes, never a percent chance. Return times are a range, never a promise. Only the utility confirms restoration.</p>
       </div>
       <h3 className="mini-h">What we assume</h3>
@@ -138,19 +127,11 @@ export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restorati
       <ul className="plain-list">{missing.map((a) => <li key={a}>{a}</li>)}</ul>
       <h3 className="mini-h">What would change the answer</h3>
       <ul className="plain-list">{change.map((a) => <li key={a}>{a}</li>)}</ul>
-      <h3 className="mini-h">Real vs simulated</h3>
-      <table className="rvs">
-        <tbody>
-          {REAL_VS_SIM.map(([what, how, real]) => (
-            <tr key={what}><td>{what}</td><td><span className={`rv ${real}`}>{RV_LABEL[real]}</span> {how}</td></tr>
-          ))}
-        </tbody>
-      </table>
       <h3 className="mini-h">Labels on every number</h3>
       <div className="chip-legend">
         <div><SourceChip source="model_estimate" /> computed by our models</div>
-        <div><SourceChip source="simulated_feed" /> our stand-in for the utility's live feed</div>
-        <div><SourceChip source="utility_confirmed" /> from the utility (none in this demo)</div>
+        <div><SourceChip source="simulated_feed" /> the status of your line right now</div>
+        <div><SourceChip source="utility_confirmed" /> a restore time posted by the utility</div>
         <div><SourceChip source="fixed_guidance" /> fixed, reviewed safety text</div>
       </div>
       <h3 className="mini-h">Your privacy</h3>
@@ -227,7 +208,7 @@ export function HomeSheet({ homes, current, onPick, onMap, onClose }: {
         {homes.map((h) => (
           <li key={h.home_id}>
             <button className={`home-item${h.home_id === current ? " current" : ""}`} onClick={() => onPick(h.home_id)}>
-              <b>{h.label}</b><span>{h.area}</span>
+              <b>{h.area}</b><span>{h.role === "story" ? "Home" : "Saved location"}</span>
             </button>
           </li>
         ))}

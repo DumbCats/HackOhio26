@@ -59,5 +59,5 @@ def get_repairs(home_id: str, t: float = 0) -> dict:
         "home_center": cell_center(f.cell[i]), "steps": steps,
         "note": "Locations shown at about 1 km precision. Only the utility confirms restoration.",
         "assumptions": ["Repair order: equipment closest to the substation first, then the repairs that serve the most homes."],
-        "missing_data": ["No real crew data"], "what_would_change": [], "fallback": None,
+        "missing_data": ["No crew location data"], "what_would_change": [], "fallback": None,
     }

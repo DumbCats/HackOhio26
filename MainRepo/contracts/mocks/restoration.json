@@ -102,7 +102,7 @@
   ],
   "missing_data": [
     "No live weather data",
-    "No real crew data",
+    "No crew location data",
     "Past repair records have dates but no times"
   ],
   "what_would_change": [

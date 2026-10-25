@@ -176,8 +176,7 @@ def _trust(r: dict, f: dict) -> str:
     gaps = "; ".join(r["missing_data"])
     return (
         f"{conf} What we don't have: {gaps}. "
-        "Past damage and homes are real data; the live outage feed and crews are simulated, "
-        "so treat times as estimates, not promises."
+        "Treat times as estimates, not promises."
     )
 
 

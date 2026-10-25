@@ -10,7 +10,7 @@ export function ChatBar({ onOpen }: { onOpen: () => void }) {
   return (
     <button className="chat-bar" onClick={onOpen} aria-label="Ask about your outage">
       <span className="spark">{SPARK}</span>
-      <span className="chat-bar-text"><b>Ask about your outage</b><small>AI assistant · uses demo data</small></span>
+      <span className="chat-bar-text"><b>Ask about your outage</b><small>AI assistant</small></span>
       <span className="send-ghost">{SEND}</span>
     </button>
   );
@@ -38,7 +38,7 @@ export function ChatSheet({ context, suggestions, messages, busy, onSend, onClos
         <div className="sheet-grabber" aria-hidden />
         <div className="chat-head">
           <span className="spark">{SPARK}</span>
-          <div><b>Outage assistant</b><small>AI · uses demo data</small></div>
+          <div><b>Outage assistant</b><small>AI assistant</small></div>
           <button className="icon-btn" onClick={onClose} aria-label="Minimize chat">
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" /></svg>
           </button>

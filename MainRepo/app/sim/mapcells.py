@@ -10,9 +10,9 @@ import numpy as np
 from app.db import get_conn
 from app.sim.feed import get_feed
 
-MISSING = ["No live weather data", "No real crew data", "Past repair records have dates but no times"]
+MISSING = ["No live weather data", "No crew location data", "Past repair records have dates but no times"]
 ASSUMPTIONS = [
-    "Outages are simulated by replaying real Feb 2025 damage through the real network map.",
+    "Outage areas come from reported damage traced through the network map.",
     "Areas are about 1 km across. Areas with fewer than 10 homes are hidden.",
 ]
 

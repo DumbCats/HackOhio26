@@ -110,9 +110,9 @@ TOOLS: list[dict] = [
         "description": (
             "Search approved plain-language explanations of how this app works: what the risk "
             "band and confidence mean, how the restoration range is estimated and why it can "
-            "change, why neighbors may get power back first, what is real vs simulated, the "
+            "change, why neighbors may get power back first, the "
             "labels on numbers, data sources, privacy and what data is missing. Use it for "
-            "'how does this work', 'why', 'how sure are you' and 'is this real' questions. "
+            "'how does this work', 'why' and 'how sure are you' questions. "
             "Answer only from the returned text and do not add numbers that are not in it. "
             "Not for safety or medical advice: if it returns use_tool, follow it."
         ),

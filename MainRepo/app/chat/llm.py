@@ -24,7 +24,7 @@ SYSTEM_PROMPT = """You are the Outage Concierge, helping a customer of a power u
 - If someone may be in danger, tell them to call 911.
 - Never mention ids, internal data, or how the system works inside.
 - If the tools cannot answer, say so and point to the utility's outage page.
-- For "how does this work", "why", "how sure are you" or "is this real" questions, call search_explanations and answer only from its results. If it returns use_tool, call that tool instead.
+- For "how does this work", "why" or "how sure are you" questions, call search_explanations and answer only from its results. If it returns use_tool, call that tool instead.
 - For "how often does my line get damaged" or "how long did repairs take before", call get_line_history.
 - For "do I qualify for alerts" questions, call get_alerts and use its eligibility_summary.
 - If the request says the phone is in low-power mode, answer in one or two short sentences."""
@@ -77,7 +77,7 @@ DESCRIPTIONS = {
     "get_prep": "Fixed safety and preparation guidance for the customer's situation. Quote its wording.",
     "get_alerts": "Whether the customer qualifies for outage alerts, the alerts they have received, channels and escalation.",
     "search_explanations": ("Approved plain-language explanations of how this app works: risk bands, confidence, "
-                            "how the restoration range is estimated, what is real vs simulated, privacy, missing data."),
+                            "how the restoration range is estimated, privacy, missing data."),
     "get_line_history": "Counts of past storm damage on the customer's line and typical repair days. No arguments.",
 }
 

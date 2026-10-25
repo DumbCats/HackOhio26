@@ -21,7 +21,7 @@
   ],
   "missing_data": [
     "No live weather data",
-    "No real crew data",
+    "No crew location data",
     "Past repair records have dates but no times",
     "No past storm damage recorded for your line"
   ],
