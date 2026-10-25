@@ -47,7 +47,12 @@ def test_every_get_endpoint_has_a_mock(url):
 
 
 def test_chat_mock():
-    r = client.post("/api/chat", json={"home_id": STORY, "messages": []})
+    """The mock router's chat answer (the real app now overrides it with app.chat.routes)."""
+    from fastapi import FastAPI
+    from app import mock_routes
+    shell = FastAPI()
+    shell.include_router(mock_routes.router)
+    r = TestClient(shell).post("/api/chat", json={"home_id": STORY, "messages": []})
     assert r.status_code == 200
     assert {"reply", "safety_flag", "source"} <= set(r.json())
 
