@@ -1,9 +1,9 @@
 """chat(req): the single entry point (contracts/API.md section 5).
 
-Layer 1 only: input checks, emergency routing, then the template answer. Layer 2 will put a model
-call between the emergency check and the template, and fall back to the template on any failure.
+Input checks and emergency routing run first, in plain code. Then Layer 2 (Gemini, llm.py) answers
+if it can and every number in its reply is grounded in tool output; otherwise Layer 1 templates answer.
 """
-from app.chat import fallback, guardrails
+from app.chat import fallback, guardrails, llm
 
 
 def chat(req: dict) -> dict:
@@ -23,9 +23,15 @@ def chat(req: dict) -> dict:
         "low_power": req.get("low_power", False),
         **{k: req.get(k) for k in ("severity", "crews", "access_blocked", "extra_damage", "switching")},
     }
+    result = llm.answer(ctx, req["messages"])
+    if result:
+        reply, used, outputs = result
+        if guardrails.numbers_grounded(reply, outputs):
+            return _response(reply, used, source="llm")
+
     reply, used = fallback.answer(ctx, text)
     return _response(reply, used)
 
 
-def _response(reply: str, tools_used: list, safety_flag: bool = False) -> dict:
-    return {"reply": reply, "tools_used": tools_used, "safety_flag": safety_flag, "source": "fallback"}
+def _response(reply: str, tools_used: list, safety_flag: bool = False, source: str = "fallback") -> dict:
+    return {"reply": reply, "tools_used": tools_used, "safety_flag": safety_flag, "source": source}
