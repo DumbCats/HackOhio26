@@ -97,10 +97,10 @@ def _text(ev: dict, needs: list[str], hours_until: float) -> str:
     if kind == "estimate_updated":
         est = ev["estimate"]
         if ev["later"]:
-            return (f"Update: more damage was found on your line. New estimate: back {_range_words(est)} "
-                "from now. We'll message you if it changes again.")
-        return (f"Update: repairs are going faster than expected. New estimate: back {_range_words(est)} "
-                "from now. We'll message you if it changes again.")
+            return ("Update: more damage was found on your line, so power will take longer than we said. "
+                    f"New estimate: back {_range_words(est)} from now. We'll message you if it changes again.")
+        return ("Update: repairs are going faster than we said. "
+                f"New estimate: back {_range_words(est)} from now. We'll message you if it changes again.")
     if kind == "restored":
         rc = ev.get("recap") or {}
         hrs = rc.get("actual_h")
