@@ -9,6 +9,8 @@ from app.main import app
 
 client = TestClient(app)
 REQ = json.loads((config.REPO_ROOT / "contracts/mocks/chat_request.json").read_text())
+from app.sim.scenario import get_scenario  # noqa: E402
+REQ["home_id"] = get_scenario()["default_home_id"]  # a real demo home
 RESP_KEYS = set(json.loads((config.REPO_ROOT / "contracts/mocks/chat_response.json").read_text()))
 
 
@@ -42,3 +44,8 @@ def test_bad_requests_are_400():
         r = client.post("/api/chat", json=req)
         assert r.status_code == 400, req
         assert r.json()["detail"]
+
+
+def test_unknown_home_is_404():
+    r = client.post("/api/chat", json={**REQ, "home_id": "p_0000000000000000"})
+    assert r.status_code == 404

@@ -7,6 +7,8 @@ from app import config
 from app.chat import llm
 from app.chat.service import chat
 
+pytestmark = pytest.mark.usefixtures("mock_tools")
+
 HOME = "p_3f9a2c71b04e8d21"
 
 

@@ -13,6 +13,7 @@ from ingest.ingest_damage import ingest_damage
 from ingest.ingest_facilities import ingest_facilities
 from ingest.ingest_assets import ingest_assets
 from ingest.ingest_premises_and_topology import ingest_premises_and_topology
+from ingest.enrich import enrich
 
 DEFAULT_DB_PATH = "data/outage_concierge.db"
 DEFAULT_DATA1 = "aep-challenge/data/raw/Data1.zip"
@@ -112,6 +113,11 @@ def build_database(db_path: str = DEFAULT_DB_PATH):
 
     # Spatial Enhancement: Nearest damage distance
     compute_nearest_damage_distances(conn)
+
+    # Lane A additions: device keys, cells, damage -> device, replay clock, priorities
+    print("\n[6/6] Lane A enrichment (cells, device keys, damage mapping, replay clock)...")
+    stats = enrich(conn, hasher, DEFAULT_DATA1, DEFAULT_DATA2, DEFAULT_TOPO)
+    print(f"  {stats}")
 
     # Finalize Metadata
     cur = conn.cursor()

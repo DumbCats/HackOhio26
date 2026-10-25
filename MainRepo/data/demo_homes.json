@@ -1,0 +1,18 @@
+{
+  "salt_check": "7b3f7b899de9",
+  "story": {
+    "home_id": "p_02e5ae586f9fb69a",
+    "label": "Maya's home (story)",
+    "out_t": 3.69,
+    "update_t": 9.48,
+    "restored_t": 18.27
+  },
+  "second": {
+    "home_id": "p_03e93880adf8fa9c",
+    "label": "Second home"
+  },
+  "fallback": {
+    "home_id": "p_000335ab6e6b9d4f",
+    "label": "Home with little history"
+  }
+}

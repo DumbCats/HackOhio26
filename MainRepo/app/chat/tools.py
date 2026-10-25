@@ -25,7 +25,8 @@ def get_forecast(ctx: dict) -> dict:
         from app.models.risk import get_forecast as real
     except ImportError:
         return _mock("forecast.json")
-    return real(ctx["home_id"], ctx["t"], ctx.get("severity", 0.8))
+    sev = ctx.get("severity")
+    return real(ctx["home_id"], ctx["t"], 0.8 if sev is None else float(sev))
 
 
 def get_restoration(ctx: dict) -> dict:

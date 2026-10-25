@@ -8,6 +8,10 @@ OUTAGE_PAGE = "https://www.appalachianpower.com/outages/"
 
 # Checked in order; first match wins.
 INTENTS = [
+    ("alerts", r"alert|notif|qualif|eligib|text me|\bsms\b|message me"),
+    ("history", r"how often|past storms?|history|before\b.*(storm|damage)|happened before"),
+    ("risk", r"why\b.*\b(risk|higher|high|band|area|lose)"),
+    ("explain", r"what is an?\b|what's an?\b|what does .* mean|how does|how do you|explain|privacy|my data"),
     ("generator", r"generator|heat(er|ing)?\b|stove|oven|grill|candle"),
     ("meds", r"insulin|medic|prescription|pharmac|refrigerat|fridge|inhaler"),
     ("food", r"food|freezer|spoil|groceries"),
@@ -15,6 +19,7 @@ INTENTS = [
     ("changes", r"what could change|change this|why (did|has|is) .*(change|longer|different|moved)|update|crews?|roads?"),
     ("risk", r"risk|will i lose|going to lose|storm|likely to|chance of (an )?outage|forecast"),
     ("trust", r"trust|how sure|confiden|accurate|reliable|promise|real data|simulat"),
+    ("explain_why", r"\bwhy\b"),
     ("do_now", r"what (do|should) i|what now|help|prepare|prep\b|checklist"),
 ]
 _COMPILED = [(name, re.compile(p, re.I)) for name, p in INTENTS]
@@ -35,6 +40,15 @@ def answer(ctx: dict, text: str) -> tuple[str, list[str]]:
     def call(name: str) -> dict:
         used.append(name)
         return TOOLS[name](ctx)
+
+    if intent == "alerts":
+        return call("get_alerts")["eligibility_summary"], used
+
+    if intent == "history":
+        return _history(ctx, used), used
+
+    if intent in ("explain", "explain_why"):
+        return _explain(ctx, text, used), used
 
     if intent == "generator":
         return _safety_line(call("get_prep"), "s_generator"), used
@@ -64,6 +78,26 @@ def answer(ctx: dict, text: str) -> tuple[str, list[str]]:
         "I can help with when your power is back, what to do while it's out, and why your area "
         f"has its risk level. I don't have live weather. For official outage news, see {OUTAGE_PAGE}"
     ), used
+
+
+def _history(ctx: dict, used: list) -> str:
+    from app.rag.tools import run_tool
+    used.append("get_line_history")
+    h = run_tool("get_line_history", {}, ctx)
+    if "error" in h:
+        return "I don't have past storm history for your line."
+    return " ".join(h.get("summary", [])[:2]) or "I don't have past storm history for your line."
+
+
+def _explain(ctx: dict, text: str, used: list) -> str:
+    from app.rag.tools import run_tool
+    used.append("search_explanations")
+    res = run_tool("search_explanations", {"query": text}, ctx)
+    hits = res.get("results") or []
+    if not hits:
+        return ("I can help with when your power is back, what to do while it's out, and why your area "
+                f"has its risk level. For official outage news, see {OUTAGE_PAGE}")
+    return hits[0]["text"]
 
 
 def _safety_line(prep: dict, safety_id: str) -> str:
@@ -111,8 +145,13 @@ def _changes(r: dict) -> str:
     lines = []
     for d in r["drivers"]:
         h = abs(d["effect_h"])
-        word = "longer" if d["effect_h"] > 0 else "shorter"
-        lines.append(f"{d['label']}: about {h:g} hours {word}")
+        if d.get("active"):
+            lines.append(f"{d['label']}: already included")
+        elif h < 0.5:
+            lines.append(f"{d['label']}: little or no change")
+        else:
+            word = "longer" if d["effect_h"] > 0 else "shorter"
+            lines.append(f"{d['label']}: about {h:g} hours {word}")
     return "What could change your estimate: " + "; ".join(lines) + "."
 
 
@@ -135,7 +174,11 @@ def _trust(r: dict, f: dict) -> str:
 
 
 def _do_now(r: dict, prep: dict) -> str:
+    needs = " ".join(n["text"] for n in prep.get("needs_actions", []))
     if not r.get("is_out"):
-        return "Your power is on. I can walk you through how to prepare. Ask about food, medicine, or what could happen."
+        steps = " ".join(a["text"] for a in prep["actions"][:3])
+        return f"{steps} {needs}".strip()
     steps = " ".join(a["text"] for a in prep["actions"][:2])
+    if needs:
+        steps = f"{steps} {needs}"
     return f"{steps} {prep['emergency_line']}"

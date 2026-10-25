@@ -2,9 +2,28 @@
 ARCOS historical damage record ingestion and storm tagging.
 """
 
+import json
+import os
 import sqlite3
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from ingest.dbf_reader import DbfReader
+
+CROSSWALK_PATH = os.path.join(os.path.dirname(__file__), "circuit_crosswalk.json")
+
+
+def load_cir_to_customer() -> Dict[int, str]:
+    """ARCOS CIR number -> customer 7-digit circuit_id (MASTER_PLAN A12, DATA_FACTS 2)."""
+    with open(CROSSWALK_PATH, encoding="utf-8") as f:
+        xw = json.load(f)["map"]
+    return {int(cir): f"{int(cust):07d}" for cust, cir in xw.items()}
+
+
+def arcos_to_customer_circuit(raw: str, xw: Dict[int, str]) -> Optional[str]:
+    """'CIR10' -> '0000009' via the crosswalk. None for non-circuit rows ('PENN FOREST', ...)."""
+    s = str(raw).strip().upper()
+    if not (s.startswith("CIR") and s[3:].isdigit()):
+        return None
+    return xw.get(int(s[3:]))
 
 ASSET_TO_CU = {
     "primary": "ARM",
@@ -20,7 +39,7 @@ ASSET_TO_CU = {
 
 
 def normalize_circuit_id(raw: str) -> str:
-    """Normalizes circuit identifiers to canonical 7-digit zero-padded string (e.g. 'CIR10' -> '0000010')."""
+    """Normalizes a customer/device 7-digit circuit id. Do NOT use for ARCOS 'CIRnn' (see arcos_to_customer_circuit)."""
     cleaned = str(raw).strip()
     if cleaned.upper().startswith("CIR"):
         cleaned = cleaned[3:]
@@ -48,6 +67,8 @@ def ingest_damage(zip_path: str, conn: sqlite3.Connection):
     reader = DbfReader(zip_path, "arcos_prod_damage_09_28_Clip.dbf")
     cur = conn.cursor()
 
+    xw = load_cir_to_customer()
+    dropped = 0
     damage_rows: List[tuple] = []
     circuit_damage_counts: Dict[str, int] = {}
     circuit_substations: Dict[str, str] = {}
@@ -60,7 +81,10 @@ def ingest_damage(zip_path: str, conn: sqlite3.Connection):
                 outage_num = f"dmg_{len(damage_rows) + 1:04d}"
 
             raw_circuit = str(rec.get("Circuit", "")).strip()
-            circuit_id = normalize_circuit_id(raw_circuit)
+            circuit_id = arcos_to_customer_circuit(raw_circuit, xw)
+            if circuit_id is None:
+                dropped += 1  # A12: non-CIR rows are not on a customer circuit
+                continue
             substation = str(rec.get("Substation", "")).strip()
             asset_type = str(rec.get("Asset_Type", "")).strip()
             cu_cat = ASSET_TO_CU.get(asset_type, "ARM")
@@ -115,4 +139,5 @@ def ingest_damage(zip_path: str, conn: sqlite3.Connection):
         """, (circ_id, sub, count))
 
     conn.commit()
-    print(f"Ingested {len(damage_rows):,} ARCOS damage records across {len(circuit_damage_counts)} circuits.")
+    print(f"Ingested {len(damage_rows):,} ARCOS damage records across {len(circuit_damage_counts)} circuits "
+          f"(dropped {dropped} non-circuit rows).")

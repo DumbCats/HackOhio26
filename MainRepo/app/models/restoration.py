@@ -327,7 +327,8 @@ def _headline(p10, p90) -> str:
         dlo, dhi = math.floor(p10 / 24), math.ceil(p90 / 24)
         dhi = max(dhi, dlo + 1)
         return f"Likely back within {dhi} days" if dlo == 0 else f"Likely back in {dlo} to {dhi} days"
-    return f"Likely back within {hi} hours" if lo == 0 else f"Likely back in {lo} to {hi} hours"
+    return (f"Likely back within {hi} hour{'' if hi == 1 else 's'}" if lo == 0
+            else f"Likely back in {lo} to {hi} hours")
 
 
 def _confidence(p10, p90, assumed) -> str:

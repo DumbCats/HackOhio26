@@ -8,6 +8,7 @@ from typing import Optional
 
 from app import config
 from app.chat.tools import TOOLS
+from app.rag.tools import RAG_TOOL_NAMES, run_tool as run_rag_tool
 
 log = logging.getLogger("uvicorn.error")
 
@@ -22,7 +23,11 @@ SYSTEM_PROMPT = """You are the Outage Concierge, helping a customer of a power u
 - For safety or medical advice, quote the wording from get_prep. Do not invent safety advice.
 - If someone may be in danger, tell them to call 911.
 - Never mention ids, internal data, or how the system works inside.
-- If the tools cannot answer, say so and point to the utility's outage page."""
+- If the tools cannot answer, say so and point to the utility's outage page.
+- For "how does this work", "why", "how sure are you" or "is this real" questions, call search_explanations and answer only from its results. If it returns use_tool, call that tool instead.
+- For "how often does my line get damaged" or "how long did repairs take before", call get_line_history.
+- For "do I qualify for alerts" questions, call get_alerts and use its eligibility_summary.
+- If the request says the phone is in low-power mode, answer in one or two short sentences."""
 
 
 def _clean(obj):
@@ -51,6 +56,14 @@ def _tool_config():
         types.FunctionDeclaration(name=name, description=DESCRIPTIONS[name])
         for name in TOOLS
     ]
+    decls.append(types.FunctionDeclaration(
+        name="search_explanations",
+        description=DESCRIPTIONS["search_explanations"],
+        parameters=types.Schema(type="OBJECT", properties={
+            "query": types.Schema(type="STRING", description="The customer's question in their own words.")},
+            required=["query"]),
+    ))
+    decls.append(types.FunctionDeclaration(name="get_line_history", description=DESCRIPTIONS["get_line_history"]))
     return types.GenerateContentConfig(
         system_instruction=SYSTEM_PROMPT,
         tools=[types.Tool(function_declarations=decls)],
@@ -62,7 +75,10 @@ DESCRIPTIONS = {
     "get_forecast": "Risk band, reasons and what would change it for the customer's home, before or during the storm.",
     "get_restoration": "Whether the customer's power is out and the estimated range of hours until it returns.",
     "get_prep": "Fixed safety and preparation guidance for the customer's situation. Quote its wording.",
-    "get_alerts": "The alerts the customer has received or would receive.",
+    "get_alerts": "Whether the customer qualifies for outage alerts, the alerts they have received, channels and escalation.",
+    "search_explanations": ("Approved plain-language explanations of how this app works: risk bands, confidence, "
+                            "how the restoration range is estimated, what is real vs simulated, privacy, missing data."),
+    "get_line_history": "Counts of past storm damage on the customer's line and typical repair days. No arguments.",
 }
 
 
@@ -75,8 +91,10 @@ def answer(ctx: dict, messages: list) -> Optional[tuple[str, list[str], list[dic
         gen_config = _tool_config()
         contents = [
             types.Content(role="model" if m["role"] == "assistant" else "user", parts=[types.Part(text=m["content"])])
-            for m in messages
+            for m in messages[-12:]
         ]
+        if ctx.get("low_power"):
+            contents[-1].parts.append(types.Part(text="(My phone is in low-power mode.)"))
         used: list[str] = []
         outputs: list[dict] = []
         for _ in range(MAX_ROUNDS + 1):
@@ -93,9 +111,12 @@ def answer(ctx: dict, messages: list) -> Optional[tuple[str, list[str], list[dic
             contents.append(content)
             parts = []
             for call in calls:
-                if call.name not in TOOLS:
+                if call.name in RAG_TOOL_NAMES:
+                    out = _clean(run_rag_tool(call.name, dict(call.args or {}), ctx))
+                elif call.name in TOOLS:
+                    out = _clean(TOOLS[call.name](ctx))
+                else:
                     return None
-                out = _clean(TOOLS[call.name](ctx))
                 used.append(call.name)
                 outputs.append(out)
                 parts.append(types.Part.from_function_response(name=call.name, response={"result": out}))

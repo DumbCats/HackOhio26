@@ -10,10 +10,22 @@ from app.main import app
 
 client = TestClient(app)
 
-HOMES = {h["label"]: h["home_id"] for h in json.loads(
+MOCK_HOMES = {h["label"]: h["home_id"] for h in json.loads(
     (config.REPO_ROOT / "contracts/mocks/scenario.json").read_text())["homes"]}
-STORY = HOMES["Maya's home (story)"]
-FALLBACK = HOMES["Home with little history"]
+MOCK_STORY = MOCK_HOMES["Maya's home (story)"]
+
+from app.sim.scenario import get_scenario  # noqa: E402  real demo homes
+_REAL = {h["role"]: h["home_id"] for h in get_scenario()["homes"]}
+STORY = _REAL["story"]
+FALLBACK = _REAL["fallback"]
+
+
+def _mock_client():
+    from fastapi import FastAPI
+    from app import mock_routes
+    shell = FastAPI()
+    shell.include_router(mock_routes.router)
+    return TestClient(shell)
 
 
 def test_config_constants():
@@ -69,9 +81,10 @@ def test_forecast_fallback_home():
     (18.4, "restoration_restored"), (50, "restoration_restored"),
 ])
 def test_restoration_by_t(t, mock):
+    """Mock router rule (the real app now serves Lane B's model)."""
     expected = json.loads((config.REPO_ROOT / f"contracts/mocks/{mock}.json").read_text())
-    got = client.get(f"/api/restoration/{STORY}?t={t}").json()
-    expected["home_id"] = STORY
+    got = _mock_client().get(f"/api/restoration/{MOCK_STORY}?t={t}").json()
+    expected["home_id"] = MOCK_STORY
     assert got == expected
 
 

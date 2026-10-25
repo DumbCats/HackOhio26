@@ -255,7 +255,8 @@ def test_no_ids_leak(fake_sim):
 
 
 def test_stub_when_sim_missing(monkeypatch):
-    monkeypatch.setitem(sys.modules, "app.sim", None)   # import app.sim.* -> ImportError
+    for mod in ("app.sim", "app.sim.feed", "app.sim.schedule", "app.sim.labor"):
+        monkeypatch.setitem(sys.modules, mod, None)     # import app.sim.* -> ImportError
     monkeypatch.setattr(R, "_home_in_db", lambda h: True)
     R.clear_cache()
     try:

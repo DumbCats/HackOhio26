@@ -23,6 +23,13 @@ def chat(req: dict) -> dict:
         "low_power": req.get("low_power", False),
         **{k: req.get(k) for k in ("severity", "crews", "access_blocked", "extra_damage", "switching")},
     }
+    try:
+        from app.sim.feed import home_info
+        home_info(ctx["home_id"])
+    except KeyError:
+        raise ValueError("unknown home")
+    except ImportError:
+        pass
     result = llm.answer(ctx, req["messages"])
     if result:
         reply, used, outputs = result
