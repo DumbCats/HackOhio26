@@ -17,19 +17,21 @@ python -m ingest.build_db      # ~7 s -> data/outage_concierge.db
 python -m ingest.find_story_home   # only if your salt differs from the one demo_homes.json was built with
 uvicorn app.main:app --port 8000
 cd frontend && npm install && npm run dev    # http://localhost:5173/?demo=1  (or npm run build -> served on :8000)
-pytest                          # 177 tests
+pytest                          # 219 tests
 ```
 
 Optional: `GEMINI_API_KEY` in `.env` turns on the LLM chat layer. Without it, chat uses template answers built from the same tool outputs.
 
 ## Demo script (story home, demo panel "Jump to")
 
+Jump buttons land just after each event; the event times are in parentheses.
+
 | Moment | Clock | What happens |
 |---|---|---|
 | Storm forecast | Wed 6:00 AM (t = -18) | Storm alert push, HIGH risk, 3 reasons, prep list |
-| Your power goes out | Thu 3:48 AM | "We know your power is out", back in 4-11 h, SAFETY card, map dark |
-| Estimate updated | Thu 9:36 AM | New damage on her path: estimate-updated push; "What could change this?" |
-| Power restored | Thu 6:24 PM | "Power is back" + recap: first range early, updated range caught it |
+| Your power goes out | Thu 3:48 AM (out at 3:41) | "We know your power is out", back in about 4-12 h (Thu 8 AM to 4 PM), SAFETY line, map dark |
+| Estimate updated | Thu 9:36 AM (report at 9:29) | New damage on her line: "about 6 hours longer"; card shows back about Thu 2 PM to 9 PM; "What could change this?": roads blocked +5 h, more damage +7 h, more crews won't help |
+| Power restored | Thu 7:24 PM (back at 7:16) | "Power is back" + recap: first range early, updated range caught it |
 
 Also: chat ("my insulin is in the fridge"), battery slider below 20% (low-power mode), "Home with little history" (fallback), map tap to pick any area.
 

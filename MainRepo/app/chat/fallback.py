@@ -12,7 +12,9 @@ INTENTS = [
     ("history", r"how often|past storms?|history|before\b.*(storm|damage)|happened before"),
     ("risk", r"why\b.*\b(risk|higher|high|band|area|lose)"),
     ("explain", r"what is an?\b|what's an?\b|what does .* mean|how does|how do you|explain|privacy|my data"),
-    ("generator", r"generator|heat(er|ing)?\b|stove|oven|grill|candle"),
+    ("candles", r"candles?"),
+    ("heat", r"stove|oven|grill|space heater|kerosene|propane heater|heat (the|my|our) (house|home|place|room)|stay warm|keep warm|too cold|freezing in here"),
+    ("generator", r"generator"),
     ("meds", r"insulin|medic|prescription|pharmac|refrigerat|fridge|inhaler"),
     ("food", r"food|freezer|spoil|groceries"),
     ("when_back", r"when|how long|back on|restor|\beta\b|\bhours?\b|come back|get (my )?power"),
@@ -52,6 +54,12 @@ def answer(ctx: dict, text: str) -> tuple[str, list[str]]:
 
     if intent == "generator":
         return _safety_line(call("get_prep"), "s_generator"), used
+
+    if intent == "heat":
+        return _safety_line(call("get_prep"), "s_heat"), used
+
+    if intent == "candles":
+        return _safety_line(call("get_prep"), "s_candles"), used
 
     if intent == "meds":
         return _meds(ctx, call), used

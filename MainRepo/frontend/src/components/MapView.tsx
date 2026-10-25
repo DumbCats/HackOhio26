@@ -25,11 +25,11 @@ export function MapView({ cells, layer, center, homeCenter, steps, interactive, 
   useEffect(() => {
     if (!el.current) return;
     const m = L.map(el.current, {
-      center, zoom, maxZoom: 14, minZoom: 9, zoomControl: false, attributionControl: true,
+      center, zoom, maxZoom: 12, minZoom: 9, zoomControl: false, attributionControl: true,
       dragging: !!interactive, scrollWheelZoom: !!interactive, doubleClickZoom: !!interactive,
       touchZoom: !!interactive, boxZoom: false, keyboard: !!interactive,
     });
-    L.tileLayer(TILES, { maxZoom: 14, attribution: "Tiles &copy; Esri" }).addTo(m);
+    L.tileLayer(TILES, { maxZoom: 12, attribution: "Tiles &copy; Esri" }).addTo(m);
     cellLayer.current = L.layerGroup().addTo(m);
     overlay.current = L.layerGroup().addTo(m);
     m.on("click", (e: L.LeafletMouseEvent) => tapRef.current?.(e.latlng.lat, e.latlng.lng));
@@ -58,7 +58,7 @@ export function MapView({ cells, layer, center, homeCenter, steps, interactive, 
       }
       const r = L.rectangle(c.bounds, { ...style, interactive: !!interactive });
       if (interactive) {
-        const band = { high: "High", medium: "Moderate", low: "Lower", unknown: "Not enough history" }[c.risk_band];
+        const band = { high: "High", medium: "Medium", low: "Low", unknown: "Too little history" }[c.risk_band];
         r.bindTooltip(layer === "risk" ? `Risk: ${band}` : `${c.homes_out} of ${c.homes} homes out`, { sticky: true });
       }
       g.addLayer(r);
@@ -77,20 +77,22 @@ export function MapView({ cells, layer, center, homeCenter, steps, interactive, 
       }).addTo(g);
     }
     if (layer === "repairs" && steps && homeCenter) {
-      const pts = steps.filter((s) => s.center && s.status !== "done");
-      if (pts.length) {
-        L.polyline([...pts.map((s) => s.center!), homeCenter], { color: "#3A3A3C", weight: 3, dashArray: "6 6", opacity: 0.8, interactive: false }).addTo(g);
+      const pos = (i: number): [number, number] => {
+        const angle = Math.PI * (0.65 + 0.35 * i);
+        return [homeCenter[0] + 0.014 * Math.sin(angle), homeCenter[1] + 0.03 * Math.cos(angle)];
+      };
+      const open = steps.map((s, i) => [s, i] as const).filter(([s]) => s.center && s.status !== "done");
+      if (open.length) {
+        L.polyline([...open.map(([, i]) => pos(i)), homeCenter], { color: "#3A3A3C", weight: 3, dashArray: "6 6", opacity: 0.8, interactive: false }).addTo(g);
       }
       steps.forEach((s, i) => {
         if (!s.center) return;
-        // Steps sit at ~1 km cell centers; nudge them apart and off the home pin so labels stay readable.
-        let jitter: [number, number] = [s.center[0] + 0.0015 * (i % 2 ? 1 : -1), s.center[1] - 0.004 * (i + 1)];
-        if (Math.abs(jitter[0] - homeCenter[0]) < 0.004 && Math.abs(jitter[1] - homeCenter[1]) < 0.006) {
-          jitter = [homeCenter[0] + 0.005 + 0.002 * i, homeCenter[1] - 0.012];
-        }
+        // Steps sit at ~1 km cell centers. Fan them out on a ring west of the home so pins and
+        // labels never sit on the home pin or on each other (positions are illustrative anyway).
+        const jitter = pos(i);
         L.marker(jitter, {
           interactive: false, keyboard: false,
-          icon: L.divIcon({ className: "pin-wrap", html: `<div class="step-pin step-${s.status}">${s.order}</div><div class="step-label"><b>${s.label}</b><span class="st-${s.status}">${STEP_TEXT[s.status]}</span></div>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
+          icon: L.divIcon({ className: "pin-wrap", html: `<div class="step-pin step-${s.status}">${s.order}</div>${s.status === "done" ? "" : `<div class="step-label"><b>${s.label}</b><span class="st-${s.status}">${STEP_TEXT[s.status]}</span></div>`}`, iconSize: [28, 28], iconAnchor: [14, 14] }),
         }).addTo(g);
       });
     }

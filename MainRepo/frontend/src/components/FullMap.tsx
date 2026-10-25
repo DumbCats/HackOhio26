@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Cell, Repairs } from "../types";
 import { MapView, type Layer } from "./MapView";
 import { SourceChip } from "./SourceChip";
@@ -6,15 +6,21 @@ import { SourceChip } from "./SourceChip";
 const PHASES = ["Risk raised", "Damage reported", "Repair scheduled", "Repairs and restore"];
 const STATUS = { in_progress: "In progress", waiting: "Waiting", done: "Done" } as const;
 
-export function FullMap({ cells, center, homeCenter, repairs, phase, initialLayer, picking, onPick, onClose }: {
+export function FullMap({ cells, center, homeCenter, repairs, phase, initialLayer, picking, pickMsg, onPick, onClose }: {
   cells: Cell[]; center: [number, number]; homeCenter: [number, number] | null; repairs: Repairs | null;
-  phase: number; initialLayer: Layer; picking: boolean; onPick: (lat: number, lon: number) => void; onClose: () => void;
+  phase: number; initialLayer: Layer; picking: boolean; pickMsg?: string | null;
+  onPick: (lat: number, lon: number) => void; onClose: () => void;
 }) {
   const [layer, setLayer] = useState<Layer>(initialLayer);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
   const steps = repairs?.steps ?? [];
   return (
     <div className="fullmap" role="dialog" aria-modal="true" aria-label="Map">
-      <MapView cells={cells} layer={layer} center={center} homeCenter={homeCenter} steps={steps} zoom={13} interactive
+      <MapView cells={cells} layer={layer} center={center} homeCenter={homeCenter} steps={steps} zoom={12} interactive
         onTap={picking ? onPick : undefined} label="Map of outages and risk by area, about 1 km precision" />
       <div className="fm-top">
         <button className="round-btn" onClick={onClose} aria-label="Close map">
@@ -29,10 +35,10 @@ export function FullMap({ cells, center, homeCenter, repairs, phase, initialLaye
         {layer === "repairs" ? (
           <><span><i className="lg out" />Power out</span><span><i className="lg partial" />Some out</span><span><i className="lg area" />Your area</span></>
         ) : (
-          <><span><i className="lg low" />Lower</span><span><i className="lg med" />Moderate</span><span><i className="lg high" />Higher</span><span><i className="lg unk" />Not enough history</span></>
+          <><span><i className="lg low" />Low</span><span><i className="lg med" />Medium</span><span><i className="lg high" />High</span><span><i className="lg unk" />Too little history</span></>
         )}
       </div>
-      {picking && <div className="pick-hint" role="status">Tap an area to see its outlook</div>}
+      {picking && <div className="pick-hint" role="status">{pickMsg ?? "Tap an area to see its outlook"}</div>}
       {!picking && (
         <div className="fm-sheet">
           <div className="sheet-grabber" aria-hidden />

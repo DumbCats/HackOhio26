@@ -1,4 +1,6 @@
 """Lane A: labor hours, scheduler, truth feed, map cells, locate (contracts/API.md section 5)."""
+import math
+
 import pytest
 
 from app.sim import feed, labor, mapcells
@@ -44,7 +46,7 @@ def test_feed_never_leaks_future_restore(story):
     assert during["is_out"] and during["restored_at_t"] is None
     assert during["stage"] in ("assessing", "crew_assigned", "repairing")
     after = feed.home_state(story, b + 0.01)
-    assert not after["is_out"] and after["restored_at_t"] == round(b, 2) and after["stage"] == "restored"
+    assert not after["is_out"] and after["restored_at_t"] == math.floor(b * 100 + 1e-9) / 100 and after["stage"] == "restored"
 
 
 def test_known_jobs_only_reported_and_open(story):

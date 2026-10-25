@@ -10,16 +10,15 @@ def chat(req: dict) -> dict:
     guardrails.validate_request(req)
     text = req["messages"][-1]["content"]
 
-    if guardrails.is_emergency(text):
-        return _response(guardrails.EMERGENCY_REPLY, [], safety_flag=True)
-
-    if guardrails.mentions_medical_device(text):
-        return _response(guardrails.MEDICAL_DEVICE_REPLY, [])
+    routed = guardrails.safety_route(text)
+    if routed:
+        reply, flag = routed
+        return _response(reply, [], safety_flag=flag)
 
     ctx = {
         "home_id": req["home_id"],
         "t": req.get("t", 0),
-        "needs": req.get("needs", []),
+        "needs": [n for n in req.get("needs", []) if n in guardrails.NEEDS],
         "low_power": req.get("low_power", False),
         **{k: req.get(k) for k in ("severity", "crews", "access_blocked", "extra_damage", "switching")},
     }
@@ -33,11 +32,19 @@ def chat(req: dict) -> dict:
     result = llm.answer(ctx, req["messages"])
     if result:
         reply, used, outputs = result
-        if guardrails.numbers_grounded(reply, outputs):
+        rag_emergency = any(isinstance(o, dict) and o.get("emergency") for o in outputs)
+        if rag_emergency:
+            return _response(guardrails.EMERGENCY_REPLY, used, safety_flag=True)
+        if guardrails.numbers_grounded(reply, outputs) and not _is_safety_topic(text):
             return _response(reply, used, source="llm")
 
     reply, used = fallback.answer(ctx, text)
     return _response(reply, used)
+
+
+def _is_safety_topic(text: str) -> bool:
+    """Safety/medical questions are answered only with fixed text (the template layer quotes get_prep)."""
+    return fallback.classify(text) in ("generator", "heat", "candles", "meds", "food")
 
 
 def _response(reply: str, tools_used: list, safety_flag: bool = False, source: str = "fallback") -> dict:

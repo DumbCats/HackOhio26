@@ -26,7 +26,7 @@ export interface Forecast extends Honesty {
           factors: Factor[]; rank_note?: string; note?: string };
 }
 
-export interface Estimate { p10_h: number; p50_h: number; p90_h: number; confidence: string; n_sims: number; headline: string; source: Source }
+export interface Estimate { p10_h: number; p50_h: number; p90_h: number; confidence: string; n_sims: number; headline: string; source: Source; back_by_t_low?: number; back_by_t_high?: number }
 export interface Driver { key: string; label: string; effect_h: number; active?: boolean }
 export interface RangeCheck { made_at_t: number; back_by_t_low: number; back_by_t_high: number; within_range: boolean }
 export interface Restoration extends Honesty {
@@ -49,11 +49,12 @@ export interface Prep extends Honesty {
   needs_actions: { need: string; text: string }[];
 }
 
-export interface TimelineMsg { type: string; rule_id: string; t: number; channel: string; text: string }
+export interface TimelineMsg { type: string; rule_id: string; t: number; channel: string; text: string; shift_h?: number }
 export interface Alerts extends Honesty {
   home_id: string; t: number;
   eligible: boolean; eligibility_summary: string;
-  rules: { rule_id: string; name: string; fired: boolean }[];
+  rules: { rule_id: string; name: string; fired: boolean; eligible?: boolean }[];
+  r1_pending?: boolean;
   rules_fired: { rule_id: string; text: string }[];
   channels: { channel: string; why: string }[];
   timeline: TimelineMsg[];

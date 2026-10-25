@@ -38,6 +38,7 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [notif, setNotif] = useState<TimelineMsg | null>(null);
+  const [pickMsg, setPickMsg] = useState<string | null>(null);
   const [chats, setChats] = useState<Record<string, ChatMsg[]>>({});
   const [busy, setBusy] = useState(false);
   const notifiedUpTo = useRef<number>(-Infinity);
@@ -80,11 +81,15 @@ export default function App() {
         setData((d) => ({ forecast, restoration, prep, alerts, home, repairs, map: map ?? d.map }));
         setError(null);
       } catch (e) {
-        if ((e as Error).name !== "AbortError") setError("We can't reach the outage service right now.");
+        if ((e as Error).name === "AbortError") return;
+        if (String((e as Error).message).startsWith("404")) {
+          setError("We don't recognize that location. Showing the demo home instead.");
+          setC((p) => (p && scn ? { ...p, homeId: scn.default_home_id } : p));
+        } else setError("We can't reach the outage service right now.");
       }
     }, 120);
     return () => { clearTimeout(id); ctl.abort(); };
-  }, [effective, lowPower]);
+  }, [effective, lowPower]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- notifications: a banner when the clock passes a message's time (C8)
   useEffect(() => {
@@ -168,8 +173,11 @@ export default function App() {
     try {
       const loc = await api.locate(lat, lon);
       setMapOpen(null);
+      setPickMsg(null);
       pickHome(loc.home_id);
-    } catch { /* tapped outside the service area */ }
+    } catch {
+      setPickMsg("No homes we cover there. Try a shaded area.");
+    }
   };
 
   const chatSheet = chatOpen && (
@@ -195,7 +203,7 @@ export default function App() {
               <div>
                 <h1>Outage Outlook</h1>
                 <button className="home-btn" onClick={() => setSheet("home")} aria-haspopup="dialog">
-                  {homeLabel ? `${homeLabel.label} · ` : ""}{home?.area ?? "Your area"} (anonymized)
+                  {homeLabel ? `${homeLabel.label} · ${home?.area ?? ""}` : `${home?.area ?? "Your area"} (anonymized)`}
                   <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden><path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.6" fill="none" /></svg>
                 </button>
               </div>
@@ -207,7 +215,7 @@ export default function App() {
               <span>{clockLabel(c.t)}</span>
               <span className="muted">Simulated storm replay (Feb 2025 damage)</span>
             </div>
-            {error && <div className="warn-banner" role="alert">{error} Showing the last update.</div>}
+            {error && <div className="warn-banner" role="alert">{error}{error.startsWith("We can't reach") ? " Showing the last update." : ""}</div>}
 
             <div className="map-box">
               {map && <MapView cells={map.cells} layer={layer} center={center} homeCenter={home?.center ?? null}
@@ -226,12 +234,20 @@ export default function App() {
               </div>
               <div className="map-legend">
                 {layer === "risk"
-                  ? <><span><i className="lg low" />Lower</span><span><i className="lg med" />Moderate</span><span><i className="lg high" />Higher</span></>
+                  ? <><span><i className="lg low" />Low</span><span><i className="lg med" />Medium</span><span><i className="lg high" />High</span><span><i className="lg unk" />Too little history</span></>
                   : <><span><i className="lg out" />Power out</span><span><i className="lg partial" />Some out</span><span>{map ? `${map.summary.homes_out.toLocaleString()} homes out` : ""}</span></>}
               </div>
             </div>
 
-            <StatusCard mode={mode} r={r} f={f} home={home} onChange={() => setSheet("change")} onTrust={() => setSheet("trust")} />
+            {mode === "outage" && prep && (
+              <a className="safety-line" href="tel:911">
+                <span className="safety-label">SAFETY</span>
+                <span>{prep.emergency_line}</span>
+              </a>
+            )}
+
+            <StatusCard mode={mode} r={r} f={f} home={home}
+              lastUpdate={[...(alerts?.timeline ?? [])].reverse().find((m) => m.type === "estimate_updated" && r?.out_since_t != null && m.t >= r.out_since_t) ?? null} onChange={() => setSheet("change")} onTrust={() => setSheet("trust")} />
 
             {mode === "outage" ? <SafetyCard prep={prep} /> : (
               <a className="emergency" href="tel:911">
@@ -262,7 +278,7 @@ export default function App() {
         {mapOpen && map && (
           <FullMap cells={map.cells} center={center} homeCenter={home?.center ?? null} repairs={repairs}
             phase={Math.min(3, idx)} initialLayer={mapOpen === "pick" ? "risk" : layer} picking={mapOpen === "pick"}
-            onPick={onPickMap} onClose={() => setMapOpen(null)} />
+            pickMsg={pickMsg} onPick={onPickMap} onClose={() => { setMapOpen(null); setPickMsg(null); }} />
         )}
         {chatSheet}
       </div>

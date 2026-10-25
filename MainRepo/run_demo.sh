@@ -12,4 +12,4 @@ pip install -q -r requirements.txt
 [ -f data/outage_concierge.db ] || python -m ingest.build_db
 if [ ! -d frontend/dist ]; then (cd frontend && npm install --no-audit --no-fund && npm run build); fi
 echo "Open http://localhost:8000/?demo=1"
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log

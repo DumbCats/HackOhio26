@@ -22,6 +22,9 @@ def _representatives() -> dict[str, str]:
     return rep
 
 
+MAX_SNAP_DEG2 = 0.02 ** 2   # snap a tap to a visible area at most ~2 km away
+
+
 def locate(lat: float, lon: float) -> dict:
     """Nearest visible cell to the tap; returns that cell and a home inside it."""
     cells, _ = _cells()
@@ -35,7 +38,7 @@ def locate(lat: float, lon: float) -> dict:
         d = 0.0 if inside else (c["center"][0] - lat) ** 2 + ((c["center"][1] - lon) * 0.8) ** 2
         if best is None or d < best[0]:
             best = (d, c["cell_id"])
-    if best is None:
-        raise KeyError("no area")
+    if best is None or best[0] > MAX_SNAP_DEG2:
+        raise KeyError("no area")  # outside the service area: don't snap a far-away tap to a home
     cid = best[1]
     return {"cell_id": cid, "home_id": reps[cid], "area": area_label(cid)}

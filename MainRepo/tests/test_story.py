@@ -44,6 +44,9 @@ def test_beat2_outage_confirmed(scn):
 
 def test_beat5_estimate_updated(scn):
     h, t = scn["default_home_id"], _m(scn, "update")
+    first = client.get(f"/api/restoration/{h}?t={_m(scn, 'outage')}").json()["estimate"]
+    upd = client.get(f"/api/restoration/{h}?t={t}").json()["estimate"]
+    assert first and upd and upd["back_by_t_low"] > first["back_by_t_low"] + 3
     a = client.get(f"/api/alerts/{h}?t={t}").json()
     assert "estimate_updated" in [m["type"] for m in a["timeline"]]
     assert any(r["rule_id"] == "R3" for r in a["rules_fired"])
@@ -59,6 +62,7 @@ def test_beat6_restored_inside_updated_range(scn):
     r = client.get(f"/api/restoration/{h}?t={t}").json()
     assert r["is_out"] is False and r["restored_at_t"] is not None and t >= r["restored_at_t"]
     recap = r["recap"]
+    assert recap["first_estimate"] is not None
     assert recap["updated_estimate"]["within_range"] is True
     assert recap["updated_estimate"]["back_by_t_low"] <= recap["restored_at_t"] <= recap["updated_estimate"]["back_by_t_high"]
     assert "restored" in [m["type"] for m in client.get(f"/api/alerts/{h}?t={t}").json()["timeline"]]
@@ -73,3 +77,13 @@ def test_beat7_fallback_home(scn):
 def test_moments_are_in_order(scn):
     ts = [m["t"] for m in scn["moments"]]
     assert ts == sorted(ts) and ts[0] == -18
+
+
+def test_card_rule_at_each_moment(scn):
+    h = scn["default_home_id"]
+    want = {"forecast": "forecast", "outage": "outage", "update": "outage", "restored": "restored"}
+    for m in scn["moments"]:
+        r = client.get(f"/api/restoration/{h}?t={m['t']}").json()
+        mode = ("restored" if r["restored_at_t"] is not None and m["t"] >= r["restored_at_t"]
+                else "outage" if r["is_out"] else "forecast")
+        assert mode == want[m["key"]], m

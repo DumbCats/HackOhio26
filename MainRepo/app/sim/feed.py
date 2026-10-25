@@ -12,6 +12,7 @@ sees what known_jobs() reveals at time t, never the future finish times.
 """
 from __future__ import annotations
 
+import math
 import threading
 from collections import defaultdict
 from functools import lru_cache
@@ -77,8 +78,7 @@ class Feed:
         hours_by_c: dict[str, float] = defaultdict(float)
         for j in self.jobs:
             hours_by_c[j["circuit_id"]] += j["base_hours"]
-        total = sum(hours_by_c.values()) or 1.0
-        self.crews = {c: max(1, round(config.REGIONAL_CREWS * h / total)) for c, h in hours_by_c.items()}
+        self.crews = split_crews(hours_by_c, config.REGIONAL_CREWS)
 
         # ---- schedule each circuit
         by_c: dict[str, list[dict]] = defaultdict(list)
@@ -136,6 +136,15 @@ class Feed:
         return int(((self._job_report <= t) & (t < self._job_finish)).sum())
 
 
+def split_crews(hours_by_circuit: dict, pool: int) -> dict:
+    """A4: split the regional pool across circuits by expected repair hours, rounded, at least 1 each.
+
+    The 1-crew minimum adds crews on lightly damaged circuits (171 in total for Feb 2025). This is the
+    allocation the plan's calibration used (replayed days-to-fix vs ARCOS), so we keep it and say so."""
+    total = sum(hours_by_circuit.values()) or 1.0
+    return {c: max(1, round(pool * h / total)) for c, h in hours_by_circuit.items()}
+
+
 @lru_cache(maxsize=1)
 def _feed() -> Feed:
     with _lock:
@@ -183,15 +192,30 @@ def home_state(home_id: str, t: float) -> dict:
     for a, b in ivs:
         if a <= t < b:
             stage, upd = _stage(f, i, t, a)
-            return {"is_out": True, "out_since_t": round(a, 2), "restored_at_t": None,
+            return {"is_out": True, "out_since_t": _floor2(a), "restored_at_t": None,
                     "stage": stage, "stage_updated_t": round(upd, 2)}
         if b <= t:
             last_done = (a, b)
     if last_done:
         a, b = last_done
-        return {"is_out": False, "out_since_t": round(a, 2), "restored_at_t": round(b, 2),
-                "stage": "restored", "stage_updated_t": round(b, 2)}
+        return {"is_out": False, "out_since_t": _floor2(a), "restored_at_t": _floor2(b),
+                "stage": "restored", "stage_updated_t": _floor2(b)}
     return empty
+
+
+def _floor2(x: float) -> float:
+    return math.floor(x * 100 + 1e-9) / 100
+
+
+def outage_intervals(home_id: str, t: float) -> list[tuple[float, float | None]]:
+    """The home's outages that started by t: (out_since, restored_at or None if still out at t)."""
+    f = get_feed()
+    out = []
+    for a, b in f.intervals.get(f.idx(home_id), ()):
+        if a > t:
+            break
+        out.append((_floor2(a), _floor2(b) if b <= t else None))
+    return out
 
 
 def _stage(f: Feed, i: int, t: float, out_since: float) -> tuple[str, float]:
@@ -214,7 +238,9 @@ def known_jobs(circuit_id: str, t: float) -> list[dict]:
     for j in f.jobs_by_circuit.get(circuit_id, ()):
         if j["report_t"] <= t < j["finish_t"]:
             if j["start_t"] <= t:
-                frac = (j["finish_t"] - t) / max(j["finish_t"] - j["start_t"], 1e-9)
+                # A13: only the elapsed time is known, never the true (noisy) finish time. Remaining
+                # share is judged against the job's expected hours, with a floor while it overruns.
+                frac = max(0.05, 1.0 - (t - j["start_t"]) / max(j["base_hours"], 1e-9))
             else:
                 frac = 1.0
             out.append({"job_id": j["job_id"], "device_key": j["device_key"], "base_hours": j["base_hours"],

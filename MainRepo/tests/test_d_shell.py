@@ -48,7 +48,7 @@ def test_get_conn_uses_row_factory(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("url", [
-    "/api/scenario", "/api/locate?lat=39.9&lon=-82.9", "/api/outage-map?t=5&severity=0.8",
+    "/api/scenario", "/api/locate?lat=37.27&lon=-79.94", "/api/outage-map?t=5&severity=0.8",
     f"/api/forecast/{STORY}", f"/api/restoration/{STORY}", f"/api/prep/{STORY}",
     f"/api/alerts/{STORY}",
 ])

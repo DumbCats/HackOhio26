@@ -6,7 +6,7 @@ export function ChanceChart({ r }: { r: Restoration }) {
   const pts = r.chance_back_by;
   const [hover, setHover] = useState<number | null>(null);
   if (!pts.length || !r.estimate) return null;
-  const W = 320, H = 120, padL = 8, padR = 8, padT = 12, padB = 24;
+  const W = 320, H = 120, padL = 10, padR = 16, padT = 12, padB = 24;
   const xMax = pts[pts.length - 1].t_from_now_h;
   const all = [{ t_from_now_h: 0, prob: 0 }, ...pts];
   const x = (h: number) => padL + (h / xMax) * (W - padL - padR);
@@ -29,7 +29,7 @@ export function ChanceChart({ r }: { r: Restoration }) {
         <path d={area} className="chance-area" />
         <path d={d} className="chance-line" />
         {ticks.map((tk) => (
-          <text key={tk} x={x(tk)} y={H - 6} textAnchor="middle" className="chance-tick">{tk}h</text>
+          <text key={tk} x={x(tk)} y={H - 6} textAnchor={tk === 0 ? "start" : tk === xMax ? "end" : "middle"} className="chance-tick">{tk}h</text>
         ))}
         {h && (
           <g>

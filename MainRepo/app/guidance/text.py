@@ -10,11 +10,15 @@ EMERGENCY_LINE = ("If you see a downed power line, a fire, or someone is hurt, c
                   "Stay at least 35 feet away from downed lines.")
 
 SAFETY = [
-    {"id": "s_downed_line", "text": "Treat every downed line as live. Stay at least 35 feet away and keep others away."},
+    {"id": "s_downed_line", "text": ("Treat every downed line as live. Stay at least 35 feet away and keep others away. "
+                                     "If a line falls on your car, stay inside unless the car is on fire.")},
     {"id": "s_generator", "text": ("Run generators outdoors only, at least 20 feet from the house, exhaust pointed away "
                                    "from doors and windows. Never in a garage or basement. Never plug one into a wall "
-                                   "outlet. Use a carbon monoxide alarm.")},
-    {"id": "s_heat", "text": "Never heat your home with a gas oven, stove, or grill."},
+                                   "outlet. Use a battery-powered carbon monoxide alarm. If it sounds or you feel dizzy or sick, "
+                                   "get to fresh air and call 911.")},
+    {"id": "s_heat", "text": ("Never heat your home with a gas oven, stove, or grill. Use space heaters only if they "
+                              "are made for indoor use, keep them 3 feet from anything that can burn, and never "
+                              "leave them on unattended.")},
     {"id": "s_candles", "text": "Use flashlights instead of candles. If you must use a candle, never leave it alone."},
 ]
 

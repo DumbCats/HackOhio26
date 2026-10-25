@@ -15,7 +15,7 @@ def get_scenario():
 
 
 @router.get("/api/locate")
-def get_locate(lat: float, lon: float):
+def get_locate(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)):
     try:
         return loc.locate(lat, lon)
     except KeyError:
@@ -23,7 +23,7 @@ def get_locate(lat: float, lon: float):
 
 
 @router.get("/api/outage-map")
-def outage_map(t: float = 0, severity: float = Query(config.DEFAULT_SEVERITY, ge=0, le=1)):
+def outage_map(t: float = Query(0, ge=-1000, le=1000), severity: float = Query(config.DEFAULT_SEVERITY, ge=0, le=1)):
     return mapcells.get_outage_map(t, severity)
 
 
@@ -36,7 +36,7 @@ def get_home(home_id: str):
 
 
 @router.get("/api/repairs/{home_id}")
-def get_repairs(home_id: str, t: float = 0):
+def get_repairs(home_id: str, t: float = Query(0, ge=-1000, le=1000)):
     try:
         return home.get_repairs(home_id, t)
     except KeyError:

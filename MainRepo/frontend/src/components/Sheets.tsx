@@ -64,7 +64,7 @@ const TYPE_LABEL: Record<string, string> = {
 
 export function AlertsSheet({ alerts, onClose }: { alerts: Alerts | null; onClose: () => void }) {
   return (
-    <Sheet title="Alerts" onClose={onClose} chip={<SourceChip source="model_estimate" />}>
+    <Sheet title="Alerts" onClose={onClose}>
       {alerts && (
         <>
           <div className="card eligibility">
@@ -85,7 +85,7 @@ export function AlertsSheet({ alerts, onClose }: { alerts: Alerts | null; onClos
           <ul className="rules">
             {alerts.rules.map((r) => (
               <li key={r.rule_id} className={r.fired ? "fired" : ""}>
-                <span className="tick" aria-hidden>{r.fired ? "✓" : "–"}</span>{r.name}
+                <span className="tick" aria-hidden>{r.fired ? "✓" : "–"}</span>{r.name}{!r.fired && r.rule_id === "R1" && alerts.r1_pending ? " (you'll get one at the forecast)" : ""}
                 <span className="sr-only">{r.fired ? " (applies to you)" : ""}</span>
               </li>
             ))}
@@ -107,15 +107,16 @@ export function AlertsSheet({ alerts, onClose }: { alerts: Alerts | null; onClos
   );
 }
 
-const REAL_VS_SIM: [string, string, boolean][] = [
-  ["Past storm damage (where, what broke)", "Real AEP records", true],
-  ["Homes, lines, and the equipment feeding each home", "Real network map, anonymized", true],
-  ["Repair labor hours", "Real AEP labor table", true],
-  ["Live outage feed", "Simulated: replay of the Feb 2025 storm", false],
-  ["Crew status", "Simulated stage only", false],
-  ["Weather", "Storm-strength setting", false],
-  ["Utility-confirmed restore time", "Not available in this demo", false],
+const REAL_VS_SIM: [string, string, "real" | "sim" | "none"][] = [
+  ["Past storm damage (where, what broke)", "AEP damage records", "real"],
+  ["Homes, lines, and the equipment feeding each home", "AEP network map, anonymized", "real"],
+  ["Repair labor hours", "AEP labor table", "real"],
+  ["Live outage feed", "replay of the Feb 2025 storm", "sim"],
+  ["Crew status", "stage only, no crew details", "sim"],
+  ["Weather", "a storm-strength setting", "sim"],
+  ["Utility-confirmed restore time", "not in this demo", "none"],
 ];
+const RV_LABEL = { real: "Real", sim: "Simulated", none: "Missing" };
 
 export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restoration | null; onClose: () => void }) {
   const uniq = (xs: string[]) => [...new Set(xs)];
@@ -127,6 +128,7 @@ export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restorati
       <div className="card">
         {f && !f.fallback && <p><b>Risk band:</b> {f.risk.confidence} confidence. {f.risk.confidence_reason}</p>}
         {f?.fallback && <p><b>Risk band:</b> {f.fallback.message}</p>}
+        {r?.recap && <p><b>Return time:</b> {r.recap.message}</p>}
         {r?.estimate && <p><b>Return time:</b> {r.estimate.confidence} confidence, from {r.estimate.n_sims.toLocaleString()} simulated repair runs. The range {rangeLabel(r.estimate.p10_h, r.estimate.p90_h)} covers the middle 8 in 10 of them.</p>}
         <p className="muted">Risk is a comparison with nearby homes, never a percent chance. Return times are a range, never a promise. Only the utility confirms restoration.</p>
       </div>
@@ -140,7 +142,7 @@ export function TrustSheet({ f, r, onClose }: { f: Forecast | null; r: Restorati
       <table className="rvs">
         <tbody>
           {REAL_VS_SIM.map(([what, how, real]) => (
-            <tr key={what}><td>{what}</td><td><span className={`rv ${real ? "real" : "sim"}`}>{real ? "Real" : "Simulated"}</span> {how}</td></tr>
+            <tr key={what}><td>{what}</td><td><span className={`rv ${real}`}>{RV_LABEL[real]}</span> {how}</td></tr>
           ))}
         </tbody>
       </table>
@@ -161,7 +163,11 @@ export function ChangeSheet({ r, c, set, onClose }: {
   r: Restoration | null; c: Controls; set: (p: Partial<Controls>) => void; onClose: () => void;
 }) {
   const e = r?.estimate;
-  const crews = c.crews ?? r?.inputs.crews ?? 1;
+  const [usual] = useState(() => (c.crews === null ? r?.inputs.crews ?? 1 : c.crews));
+  const crews = c.crews ?? r?.inputs.crews ?? usual;
+  const delta = crews - usual;
+  const crewDriver = r?.drivers.find((d) => d.key === "crews_plus_2");
+  const crewsDontHelp = !!crewDriver && Math.abs(crewDriver.effect_h) < 0.5;
   return (
     <Sheet title="What could change this?" onClose={onClose} chip={<SourceChip source="model_estimate" />}>
       <div className="card live-estimate" aria-live="polite">
@@ -186,10 +192,10 @@ export function ChangeSheet({ r, c, set, onClose }: {
       <h3 className="mini-h">Try it</h3>
       <div className="controls">
         <div className="control">
-          <span>Crews on your line</span>
+          <span>Crews on your line <small className="muted block">{delta === 0 ? "as planned" : `${delta > 0 ? "+" : "−"}${Math.abs(delta)} vs planned`}</small></span>
           <div className="stepper">
             <button className="icon-btn" aria-label="Fewer crews" onClick={() => set({ crews: Math.max(1, crews - 1) })}>{"−"}</button>
-            <b aria-live="polite">{crews}</b>
+            <b aria-live="polite">{delta === 0 ? "—" : `${delta > 0 ? "+" : "−"}${Math.abs(delta)}`}</b>
             <button className="icon-btn" aria-label="More crews" onClick={() => set({ crews: Math.min(30, crews + 1) })}>+</button>
             {c.crews !== null && <button className="link-btn" onClick={() => set({ crews: null })}>reset</button>}
           </div>
@@ -205,6 +211,7 @@ export function ChangeSheet({ r, c, set, onClose }: {
           </div>
         </div>
       </div>
+      {crewsDontHelp && <p className="note">More crews won't speed this up much: the repairs on your line aren't waiting for a crew, they just take time.</p>}
       <p className="muted small">These are what-ifs on our estimate. They don't change what the utility reports.</p>
     </Sheet>
   );

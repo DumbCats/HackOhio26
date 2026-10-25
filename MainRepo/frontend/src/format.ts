@@ -26,7 +26,7 @@ export function rangeLabel(p10: number, p90: number): string {
     const dlo = Math.floor(p10 / 24), dhi = Math.max(Math.ceil(p90 / 24), dlo + 1);
     return dlo === 0 ? `within ${dhi} days` : `${dlo}–${dhi} days`;
   }
-  return lo === 0 ? `within ${hi} hours` : `${lo}–${hi} hours`;
+  return lo === 0 ? `within ${hi} hour${hi === 1 ? "" : "s"}` : `${lo}–${hi} hours`;
 }
 
 export const SOURCE_LABEL: Record<Source, string> = {
@@ -47,7 +47,21 @@ export const NEED_LABELS: Record<string, string> = {
   critical_facility: "I run a clinic, shelter, or care home",
 };
 
-export const BAND_TEXT: Record<string, string> = { high: "High", medium: "Moderate", low: "Lower", unknown: "Unknown" };
+export const BAND_TEXT: Record<string, string> = { high: "High", medium: "Medium", low: "Low", unknown: "Unknown" };
+
+// Clock window rounded to the hour: "Thu 8 AM to 4 PM" (matches the backend's message wording).
+function hourLabel(t: number, up: boolean): [string, string] {
+  const h = up ? Math.ceil(t) : Math.floor(t);
+  const day = DAYS[((Math.floor(h / 24) % 7) + 7) % 7];
+  const hh = ((h % 24) + 24) % 24;
+  return [day, `${hh % 12 === 0 ? 12 : hh % 12} ${hh < 12 ? "AM" : "PM"}`];
+}
+export function windowLabel(lo: number, hi: number): string {
+  const [d1, a] = hourLabel(lo, false);
+  let [d2, b] = hourLabel(hi, true);
+  if (d1 === d2 && a === b) [d2, b] = hourLabel(hi + 1, true);
+  return d1 === d2 ? `${d1} ${a} to ${b}` : `${d1} ${a} to ${d2} ${b}`;
+}
 
 export const STAGES = [
   { key: "risk", label: "Risk raised" },

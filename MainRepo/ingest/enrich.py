@@ -27,6 +27,7 @@ STORM_T0 = date(2025, 2, 13)        # A1: t = hours since 2025-02-13 00:00
 FEB_REPLAY = ("20250213", "20250218")
 SEP_STORM = ("20240926", "20241002")
 HISTORY_CUTOFF = "20250212"         # "past damage" = reported before the Feb storm window (A5/A6)
+NO_OUTAGE_ASSETS = {"Capacitor Bank", "Light"}
 MAX_MAP_M = 1000.0                  # damage farther than this from any same-circuit device stays unmapped
 
 CELL_DLAT = 0.009                   # ~1 km
@@ -135,10 +136,11 @@ def enrich(conn: sqlite3.Connection, hasher: PremiseHasher, data1: str, data2: s
             else:
                 locs.append(y[3])
         last = len(locs) - 1
+        for loc in set(l for l in locs if l is not None):
+            down[loc] += 1                      # unique homes behind each device
         for n_, loc in enumerate(locs):
             if loc is None:
                 continue
-            down[loc] += 1
             depth[loc] = min(depth.get(loc, 99), last - n_)   # 0 = breaker
             if loc not in hashed:
                 hashed[loc] = hasher.hash_device(loc)
@@ -196,6 +198,8 @@ def enrich(conn: sqlite3.Connection, hasher: PremiseHasher, data1: str, data2: s
                 best = (kk, locs[j], float(d[j]))
                 break
         loc = None
+        if asset in NO_OUTAGE_ASSETS:
+            best = None                         # capacitor/light damage doesn't drop customers
         if best is not None and best[2] <= MAX_MAP_M:
             kk, near, _ = best
             loc = near if (asset in ("Transformer", "secondary") or kk in "FR") else first_iso.get(near)

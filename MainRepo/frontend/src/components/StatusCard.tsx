@@ -1,5 +1,5 @@
-import type { Forecast, HomeInfo, Restoration } from "../types";
-import { BAND_TEXT, clockLabel, rangeLabel, STAGES, stageIndex } from "../format";
+import type { Forecast, HomeInfo, Restoration, TimelineMsg } from "../types";
+import { BAND_TEXT, clockLabel, rangeLabel, STAGES, stageIndex, windowLabel } from "../format";
 import { SourceChip } from "./SourceChip";
 import { ChanceChart } from "./ChanceChart";
 
@@ -26,9 +26,9 @@ const ICON = {
   steps: <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden><path d="M4 20 20 4" stroke="currentColor" strokeWidth="2.5" /><path d="M8 20h-4v-4" stroke="currentColor" strokeWidth="2.5" fill="none" /></svg>,
 };
 
-export function StatusCard({ mode, r, f, home, onChange, onTrust }: {
+export function StatusCard({ mode, r, f, home, lastUpdate, onChange, onTrust }: {
   mode: Mode; r: Restoration | null; f: Forecast | null; home: HomeInfo | null;
-  onChange: () => void; onTrust: () => void;
+  lastUpdate: TimelineMsg | null; onChange: () => void; onTrust: () => void;
 }) {
   if (mode === "forecast") return <ForecastCard f={f} home={home} onTrust={onTrust} />;
   if (mode === "restored" && r) return <RestoredCard r={r} onTrust={onTrust} />;
@@ -55,6 +55,9 @@ export function StatusCard({ mode, r, f, home, onChange, onTrust }: {
         <div className="cell">
           <div className="k">{ICON.clock} EXPECTED TIME</div>
           {e ? <div className="v">{rangeLabel(e.p10_h, e.p90_h)}</div> : <div className="v v-sm">Can't estimate</div>}
+          {e?.back_by_t_low != null && e.back_by_t_high != null && (
+            <div className="s s-strong">about {windowLabel(e.back_by_t_low, e.back_by_t_high)}</div>
+          )}
           <div className="s">Our estimate · not confirmed</div>
         </div>
         <div className="cell">
@@ -72,6 +75,7 @@ export function StatusCard({ mode, r, f, home, onChange, onTrust }: {
         </div>
       </div>
 
+
       {r.fallback && (
         <div className="fallback-card">
           <b>We can't estimate this reliably.</b>
@@ -86,6 +90,14 @@ export function StatusCard({ mode, r, f, home, onChange, onTrust }: {
             <h3>{e.headline}</h3>
             <SourceChip source="model_estimate" />
           </div>
+          {e.back_by_t_low != null && e.back_by_t_high != null && (
+            <p className="back-by">Back by about <b>{windowLabel(e.back_by_t_low, e.back_by_t_high)}</b></p>
+          )}
+          {lastUpdate?.shift_h != null && r.t - lastUpdate.t < 6 && (
+            <p className="update-pill" role="status">
+              Updated {clockLabel(lastUpdate.t)}: about {Math.max(1, Math.round(Math.abs(lastUpdate.shift_h)))} hours {lastUpdate.shift_h > 0 ? "later" : "sooner"} than before
+            </p>
+          )}
           <p className="muted">Confidence: <b>{e.confidence}</b>. An estimate, not a promise.</p>
           <ChanceChart r={r} />
           {r.step_restoration && <p className="step-note">{r.step_restoration.message}</p>}
@@ -105,7 +117,7 @@ function ForecastCard({ f, home, onTrust }: { f: Forecast | null; home: HomeInfo
   if (f.fallback) {
     return (
       <section className="card-section" aria-labelledby="fc-h">
-        <div className="section-head"><h2 id="fc-h">Will I lose power?</h2><SourceChip source="model_estimate" /></div>
+        <div className="section-head"><h2 id="fc-h">Will I lose power?</h2></div>
         <div className="fallback-card">
           <b>We can't predict this reliably</b>
           <p>{f.fallback.message}</p>

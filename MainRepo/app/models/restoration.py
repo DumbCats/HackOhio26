@@ -79,7 +79,7 @@ MAJOR_ASSETS = ("pole", "primary", "recloser")
 
 ASSUMPTIONS = [
     "Repair hours come from AEP's labor table, times 4.5 for travel and setup.",
-    "Crews come from a shared regional pool of 150.",
+    "Crews come from a shared regional pool of 150, split by repair work, with at least 1 per line.",
     "Only damage reported so far is counted.",
     "Not a promise. The utility's confirmed time may differ.",
 ]
@@ -199,13 +199,14 @@ def _live(mods, home_id, t, crews, access_blocked, extra_damage, switching) -> d
                                    "stage_updated_t": state.get("stage_updated_t", restored_at)}))
         out["recap"] = _recap(feed, home_id, info, state)
         return out
+    if not info.get("path_device_keys"):                        # A6: no network match -> fallback, keep the shape
+        out["fallback"] = {"reason": "no_topology", "message": NO_TOPOLOGY_MESSAGE, "link": OUTAGE_LINK}
+        out["missing_data"].append("Your home is not on the line map we have")
     if not state.get("is_out"):                                 # Mode 1 (not out)
         return out
 
     out.update(is_out=True, out_since_t=state.get("out_since_t"), status=_status(state))
-    if not info.get("path_device_keys"):                        # A6 fallback, keep the shape
-        out["fallback"] = {"reason": "no_topology", "message": NO_TOPOLOGY_MESSAGE,
-                           "link": OUTAGE_LINK}
+    if out["fallback"]:
         return out
 
     jobs = list(feed.known_jobs(info["circuit_id"], t))
@@ -213,6 +214,11 @@ def _live(mods, home_id, t, crews, access_blocked, extra_damage, switching) -> d
     base = _mc(jobs, path, t, n_crews, access_blocked, extra_damage, switching, labor)
     out["source"] = "model_estimate"
     out["estimate"] = _estimate_block(base)
+    out["estimate"]["back_by_t_low"] = round(t + out["estimate"]["p10_h"], 2)   # storm-clock times
+    out["estimate"]["back_by_t_high"] = round(t + out["estimate"]["p90_h"], 2)
+    out["estimate"]["confidence"] = _adjust_confidence(
+        out["estimate"]["confidence"], home_id,
+        what_if=bool(crews is not None or access_blocked or extra_damage or not switching))
     out["chance_back_by"] = _curve(base["restore"])
     out["step_restoration"] = base["step"]
     out["cause"] = _cause(jobs, path, base)
@@ -326,7 +332,7 @@ def _headline(p10, p90) -> str:
     if hi > 48:
         dlo, dhi = math.floor(p10 / 24), math.ceil(p90 / 24)
         dhi = max(dhi, dlo + 1)
-        return f"Likely back within {dhi} days" if dlo == 0 else f"Likely back in {dlo} to {dhi} days"
+        return f"Likely back within {dhi} days" if dlo == 0 else f"Likely back in {dlo} to {dhi} days"  # dhi >= 2
     return (f"Likely back within {hi} hour{'' if hi == 1 else 's'}" if lo == 0
             else f"Likely back in {lo} to {hi} hours")
 
@@ -337,6 +343,31 @@ def _confidence(p10, p90, assumed) -> str:
     if ratio > 4 or assumed:
         return "low"
     return "high" if ratio < 2 else "medium"
+
+
+_CONF_ORDER = ["low", "medium", "high"]
+
+
+def _history_confidence(home_id: str) -> str | None:
+    """A6 from the risk model: 'high' (>= 3 past rows on the line), 'low' (fewer), None if unknown."""
+    try:
+        from app.models import risk
+        c = risk._cache()
+        i = c["index"].get(home_id)
+        if i is None:
+            return None
+        return "high" if c["conf"][i] >= risk.CONF_HIGH else "low"
+    except Exception:
+        return None
+
+
+def _adjust_confidence(conf: str, home_id: str, what_if: bool) -> str:
+    """Plan Lane B 2: Low when A6 says Low. What-ifs are hypotheticals, so never above medium."""
+    if _history_confidence(home_id) == "low":
+        return "low"
+    if what_if and conf == "high":
+        return "medium"
+    return conf
 
 
 def _estimate_block(res) -> dict:
@@ -432,19 +463,44 @@ def _range_at(home_id, made_at, restored_at) -> dict | None:
             "within_range": bool(lo <= restored_at <= hi)}
 
 
-def _updated_time(feed, info, out_since, restored_at) -> float | None:
-    """Latest report_t of a path job reported after the outage began (before restore)."""
-    path = set(info.get("path_device_keys") or [])
-    if not path:
+def r3_fires(prev_eta: float, prev_p50: float, new_eta: float) -> bool:
+    """R3 (MASTER_PLAN Lane D 3): absolute ETA (t + P50) moves > 3 h or > 25% of the last wait."""
+    d = abs(new_eta - prev_eta)
+    return d > 3 or d > 0.25 * max(prev_p50, 0.1)
+
+
+def update_times(home_id: str, out_since: float, end: float) -> list[float]:
+    """Moments in (out_since, end) when an estimate-updated message fires (default scenario).
+
+    Candidates are report times of new damage on the home's path; each is compared with the last
+    estimate sent. app/guidance/alerts.py and the recap both use this, so they always agree."""
+    feed = importlib.import_module("app.sim.feed")
+    first = get_restoration(home_id, t=out_since).get("estimate")
+    if not first:
+        return []
+    last, last_t, fired = first, out_since, []
+    if hasattr(feed, "path_jobs"):
+        reports = {j["report_t"] for j in feed.path_jobs(home_id, end)}
+    else:  # minimal feeds (tests): probe known_jobs for path reports
+        info = feed.home_info(home_id)
+        path = set(info.get("path_device_keys") or [])
+        reports = {j["report_t"] for tp in np.arange(out_since, end, 0.5)
+                   for j in feed.known_jobs(info["circuit_id"], float(tp)) if j.get("device_key") in path}
+    probes = sorted(r for r in reports if r is not None and out_since < r < end)
+    for pt in probes:
+        est = get_restoration(home_id, t=pt).get("estimate")
+        if est and r3_fires(last_t + last["p50_h"], last["p50_h"], pt + est["p50_h"]):
+            fired.append(round(pt, 2))
+            last, last_t = est, pt
+    return fired
+
+
+def _updated_time(feed, info, out_since, restored_at, home_id=None) -> float | None:
+    """The last R3 moment of this outage (the 'updated estimate' in the recap, API.md 4)."""
+    if not info.get("path_device_keys") or home_id is None:
         return None
-    probes = list(np.arange(out_since, restored_at, 0.5)) + [restored_at - 1e-6]
-    best = None
-    for tp in probes:
-        for j in feed.known_jobs(info["circuit_id"], float(tp)):
-            r = j.get("report_t")
-            if j.get("device_key") in path and r is not None and out_since < r < restored_at:
-                best = r if best is None else max(best, r)
-    return None if best is None else float(best)
+    times = update_times(home_id, out_since, restored_at)
+    return times[-1] if times else None
 
 
 def _miss_word(r, actual_t) -> str:
@@ -461,7 +517,7 @@ def _recap(feed, home_id, info, state) -> dict | None:
         return None
     actual = round(restored_at - out_since, 1)
     first = _range_at(home_id, out_since, restored_at)
-    t_up = _updated_time(feed, info, out_since, restored_at)
+    t_up = _updated_time(feed, info, out_since, restored_at, home_id)
     updated = _range_at(home_id, t_up, restored_at) if t_up is not None else None
 
     msg = f"You were out about {max(1, round(actual))} hours."

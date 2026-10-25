@@ -34,7 +34,7 @@ export function LowPowerView({ r, f, prep, mode, onExit, onChat, battery }: {
 }) {
   const e = r?.estimate;
   let status = "Power is on.";
-  if (mode === "outage") status = `Power is out since ${r?.out_since_t != null ? clockLabel(r.out_since_t) : "recently"}.`;
+  if (mode === "outage") status = `Power has been out since ${r?.out_since_t != null ? clockLabel(r.out_since_t) : "recently"}.`;
   if (mode === "restored") status = "Power is back on.";
   const next = prep?.needs_actions[0]?.text ?? prep?.actions[0]?.text;
   return (

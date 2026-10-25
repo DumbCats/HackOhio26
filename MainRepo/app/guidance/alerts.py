@@ -16,6 +16,7 @@ from __future__ import annotations
 from functools import lru_cache
 
 from app import config
+from app.guidance import clock
 from app.guidance.common import forecast_for, parse_needs, restoration_for
 
 FORECAST_T = -18.0
@@ -32,51 +33,49 @@ RULE_NAMES = {"R1": "Pre-storm alert (Medium or High risk)", "R2": "Outage confi
               "R3": "Estimate updated (moved over 3 h or 25%)", "R4": "Power restored"}
 
 
-def _r3(prev_eta: float, prev_p50: float, new_eta: float) -> bool:
-    d = abs(new_eta - prev_eta)
-    return d > 3 or d > 0.25 * max(prev_p50, 0.1)
-
-
 def _range_words(est: dict) -> str:
     h = est["headline"]
     return h[len("Likely back "):] if h.startswith("Likely back ") else h
 
 
+def _when(est: dict, t: float) -> str:
+    """'4 to 12 hours (about Thu 8 AM to 4 PM)': hours from now plus the clock window."""
+    return f"{_range_words(est)} (about {clock.window(t + est['p10_h'], t + est['p90_h'])})"
+
+
+def r1_band(home_id: str) -> str:
+    """R1 is decided once, at the forecast moment, with the default storm strength."""
+    return forecast_for(home_id, FORECAST_T)["risk"]["band"]
+
+
 @lru_cache(maxsize=2048)
 def _events(home_id: str, t: float) -> tuple:
-    """Message events up to t with the default scenario: tuple of dicts (cached)."""
+    """Message events up to t with the default scenario, across every outage so far (cached)."""
+    from app.models.restoration import update_times
     from app.sim import feed
     events = []
-    fc = forecast_for(home_id, FORECAST_T)
-    band = fc["risk"]["band"]
+    band = r1_band(home_id)
     if band in ("medium", "high") and t >= FORECAST_T:
         events.append({"rule": "R1", "type": "pre_storm", "t": FORECAST_T, "band": band})
-    state = feed.home_state(home_id, t)
-    out_since = state.get("out_since_t")
-    if out_since is None:
-        return tuple(events)
-    first = restoration_for(home_id, out_since).get("estimate")
-    events.append({"rule": "R2", "type": "outage_confirmed", "t": out_since, "estimate": first,
-                   "stage": (restoration_for(home_id, out_since).get("status") or {}).get("label")})
-    last = first
-    last_t = out_since
-    end = state.get("restored_at_t") if state.get("restored_at_t") is not None else t
-    probes = sorted({j["report_t"] for j in feed.path_jobs(home_id, end) if out_since < j["report_t"] <= end})
-    for pt in probes:
-        if state.get("restored_at_t") is not None and pt >= state["restored_at_t"]:
-            break
-        est = restoration_for(home_id, pt).get("estimate")
-        if not est or not last:
-            continue
-        if _r3(last_t + last["p50_h"], last["p50_h"], pt + est["p50_h"]):
-            later = pt + est["p50_h"] > last_t + last["p50_h"]
-            events.append({"rule": "R3", "type": "estimate_updated", "t": round(pt, 2), "estimate": est,
-                           "later": later})
+    for out_since, restored_at in feed.outage_intervals(home_id, t):
+        r0 = restoration_for(home_id, out_since)
+        first = r0.get("estimate")
+        events.append({"rule": "R2", "type": "outage_confirmed", "t": out_since, "estimate": first,
+                       "stage": (r0.get("status") or {}).get("label")})
+        end = restored_at if restored_at is not None else t
+        last, last_t = first, out_since
+        for pt in update_times(home_id, out_since, end + 1e-6 if restored_at is None else end):
+            if pt > t:
+                break
+            est = restoration_for(home_id, pt).get("estimate")
+            if not est or not last:
+                continue
+            shift = (pt + est["p50_h"]) - (last_t + last["p50_h"])
+            events.append({"rule": "R3", "type": "estimate_updated", "t": pt, "estimate": est, "shift_h": shift})
             last, last_t = est, pt
-    if state.get("restored_at_t") is not None:
-        r = restoration_for(home_id, t)
-        events.append({"rule": "R4", "type": "restored", "t": state["restored_at_t"],
-                       "recap": r.get("recap")})
+        if restored_at is not None:
+            events.append({"rule": "R4", "type": "restored", "t": restored_at,
+                           "actual_h": round(restored_at - out_since, 1)})
     return tuple(events)
 
 
@@ -92,21 +91,19 @@ def _text(ev: dict, needs: list[str], hours_until: float) -> str:
     if kind == "outage_confirmed":
         est = ev.get("estimate")
         lead = f"We know your power is out. {ev['stage']}." if ev.get("stage") else "We know your power is out."
-        rng = f" Our estimate: back {_range_words(est)}." if est else ""
+        rng = f" Our estimate: back {_when(est, ev['t'])}." if est else ""
         return f"{lead}{rng} Stay away from downed lines."
     if kind == "estimate_updated":
-        est = ev["estimate"]
-        if ev["later"]:
-            return ("Update: more damage was found on your line, so power will take longer than we said. "
-                    f"New estimate: back {_range_words(est)} from now. We'll message you if it changes again.")
-        return ("Update: repairs are going faster than we said. "
-                f"New estimate: back {_range_words(est)} from now. We'll message you if it changes again.")
+        est, shift = ev["estimate"], ev["shift_h"]
+        hrs = max(1, round(abs(shift)))
+        if shift > 0:
+            return (f"Update: more damage was found on your line, so it will take about {hrs} hours longer. "
+                    f"New estimate: back {_when(est, ev['t'])}.")
+        return (f"Update: repairs are going faster, about {hrs} hours sooner than we said. "
+                f"New estimate: back {_when(est, ev['t'])}.")
     if kind == "restored":
-        rc = ev.get("recap") or {}
-        hrs = rc.get("actual_h")
-        span = f" You were out about {max(1, round(hrs))} hours." if hrs else ""
-        return (f"Your power is back.{span} Check food in your fridge before eating it. "
-                "If it goes out again, report it on the outage page.")
+        return (f"Your power is back. You were out about {max(1, round(ev['actual_h']))} hours. Check food in "
+                "your fridge before eating it. If it goes out again, report it on the outage page.")
     return ""
 
 
@@ -116,17 +113,22 @@ def get_alerts(home_id: str, t: float = 0, needs: list[str] | None = None, low_p
     t = float(t)
     events = _events(home_id, round(t, 2))
     channel = "sms" if low_power else "push"
-    timeline = [{"type": ev["type"], "rule_id": ev["rule"], "t": ev["t"], "channel": channel,
-                 "text": _text(ev, needs, -FORECAST_T)} for ev in events if ev["t"] <= t]
+    timeline = []
+    for ev in events:
+        if ev["t"] > t:
+            continue
+        msg = {"type": ev["type"], "rule_id": ev["rule"], "t": ev["t"], "channel": channel,
+               "text": _text(ev, needs, -FORECAST_T)}
+        if "shift_h" in ev:
+            msg["shift_h"] = round(ev["shift_h"], 1)  # how much the return time moved (+ later)
+        timeline.append(msg)
 
-    fc = forecast_for(home_id, t, scenario)
-    band = fc["risk"]["band"]
+    band = r1_band(home_id)  # the same band the pre-storm message used
     fired_ids = [ev["rule"] for ev in events]
-    rules_fired = [{"rule_id": rid, "text": RULES[rid].format(band=band.upper() if band != "unknown" else "")}
-                   for rid in fired_ids]
-    if band in ("medium", "high") and "R1" not in fired_ids and t < FORECAST_T:
-        rules_fired.insert(0, {"rule_id": "R1", "text": RULES["R1"].format(band=band.upper())})
-
+    rules_fired = []
+    for rid in dict.fromkeys(fired_ids):
+        rules_fired.append({"rule_id": rid, "text": RULES[rid].format(band=band.upper())})
+    r1_pending = band in ("medium", "high") and t < FORECAST_T
     r_now = restoration_for(home_id, t, scenario)
     est = r_now.get("estimate")
     p90 = est["p90_h"] if est else None
@@ -163,8 +165,9 @@ def get_alerts(home_id: str, t: float = 0, needs: list[str] | None = None, low_p
     return {
         "home_id": home_id, "t": t, "source": "model_estimate",
         "eligible": eligible, "eligibility_summary": summary,
-        "rules": [{"rule_id": k, "name": v, "fired": k in fired_ids or (k == "R1" and any(
-            r["rule_id"] == "R1" for r in rules_fired))} for k, v in RULE_NAMES.items()],
+        "rules": [{"rule_id": k, "name": v, "fired": k in fired_ids,
+                   "eligible": k != "R1" or band in ("medium", "high")} for k, v in RULE_NAMES.items()],
+        "r1_pending": r1_pending,
         "rules_fired": rules_fired,
         "channels": channels,
         "timeline": timeline,

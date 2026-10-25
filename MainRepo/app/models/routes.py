@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/api/forecast/{home_id}")
-def forecast(home_id: str, t: float = 0, severity: float = Query(DEFAULT_SEVERITY, ge=0, le=1)):
+def forecast(home_id: str, t: float = Query(0, ge=-1000, le=1000), severity: float = Query(DEFAULT_SEVERITY, ge=0, le=1)):
     try:
         return risk.get_forecast(home_id, t=t, severity=severity)
     except UnknownHome:
@@ -20,7 +20,7 @@ def forecast(home_id: str, t: float = 0, severity: float = Query(DEFAULT_SEVERIT
 @router.get("/api/restoration/{home_id}")
 def restoration_route(
     home_id: str,
-    t: float = 0,
+    t: float = Query(0, ge=-1000, le=1000),
     crews: int | None = Query(None, ge=1, le=30),
     access_blocked: bool = False,
     extra_damage: int = Query(0, ge=0, le=10),

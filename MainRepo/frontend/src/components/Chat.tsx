@@ -48,7 +48,7 @@ export function ChatSheet({ context, suggestions, messages, busy, onSend, onClos
           {messages.map((m, i) => (
             <div key={i} className={`bubble-row ${m.role}`}>
               <div className={`bubble ${m.role}${m.safety_flag ? " safety" : ""}`}>
-                {m.safety_flag && <div className="safety-label">SAFETY</div>}
+                {m.safety_flag && <div><span className="safety-label">SAFETY</span></div>}
                 {m.content}
                 {m.role === "assistant" && m.source && (
                   <div className="bubble-src">{SOURCE_LABEL[m.source as Source] ?? m.source}</div>

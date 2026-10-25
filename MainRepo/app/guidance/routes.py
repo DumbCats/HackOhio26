@@ -18,7 +18,7 @@ def _scenario(severity, crews, access_blocked, extra_damage, switching) -> dict:
 
 
 @router.get("/api/prep/{home_id}")
-def get_prep(home_id: str, t: float = 0, needs: str = "",
+def get_prep(home_id: str, t: float = Query(0, ge=-1000, le=1000), needs: str = "",
              severity: float = Query(config.DEFAULT_SEVERITY, ge=0, le=1),
              crews: Optional[int] = Query(None, ge=1, le=30), access_blocked: bool = False,
              extra_damage: int = Query(0, ge=0, le=10), switching: bool = True):
@@ -29,7 +29,7 @@ def get_prep(home_id: str, t: float = 0, needs: str = "",
 
 
 @router.get("/api/alerts/{home_id}")
-def get_alerts(home_id: str, t: float = 0, needs: str = "", low_power: bool = False,
+def get_alerts(home_id: str, t: float = Query(0, ge=-1000, le=1000), needs: str = "", low_power: bool = False,
                severity: float = Query(config.DEFAULT_SEVERITY, ge=0, le=1),
                crews: Optional[int] = Query(None, ge=1, le=30), access_blocked: bool = False,
                extra_damage: int = Query(0, ge=0, le=10), switching: bool = True):

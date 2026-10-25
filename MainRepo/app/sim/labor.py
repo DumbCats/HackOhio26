@@ -26,7 +26,13 @@ ASSET_HOURS = {
 DEFAULT_HOURS = ASSET_HOURS["primary"]  # blank asset type is treated as primary wire
 
 ACCESS_ADDER = 0.5                      # Access_Iss = Yes
-EQUIPMENT_ADDERS = {"backyard bucket": 0.5, "track hoe": 1.312, "yard dog": 1.312}
+# Workbook adders: Backyard 0.5; Remote Location 1.312 (track/off-road machines); Specialized
+# Handling 0.5 (transportation, lifting, positioning) for large trucks and handlers.
+EQUIPMENT_ADDERS = {
+    "backyard bucket": 0.5,
+    "track hoe": 1.312, "yard dog": 1.312, "backhoe": 1.312,
+    "big bucket": 0.5, "material handler": 0.5, "tandem bucket": 0.5, "tandem line": 0.5,
+}
 
 
 def job_base_hours(asset_type: str, access_issue: bool, special_equipment: str) -> float:

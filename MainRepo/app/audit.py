@@ -26,5 +26,18 @@ def write(entry: dict) -> None:
         pass  # auditing must never break a response
 
 
+ROUND_PARAMS = {"lat", "lon"}  # a map tap is logged at ~1 km, like everything else
+
+
 def params(query: dict) -> dict:
-    return {k: v for k, v in query.items() if k not in DROP_PARAMS}
+    out = {}
+    for k, v in query.items():
+        if k in DROP_PARAMS:
+            continue
+        if k in ROUND_PARAMS:
+            try:
+                v = round(float(v), 2)
+            except ValueError:
+                v = None
+        out[k] = v
+    return out

@@ -12,6 +12,7 @@ from app.main import app
 
 client = TestClient(app)
 
+COORD_KEYS = {"bounds", "center", "home_center", "map_center"}
 BANNED_KEYS = {"lat", "lon", "latitude", "longitude", "circuit_id", "device_key", "device_id", "premise_nu",
                "premise_number", "transformer_id", "is_critical_tier", "critical", "crew_id", "crew_name",
                "address", "road_name", "path_device_keys", "job_id", "facility", "facility_id"}
@@ -52,11 +53,13 @@ def _check(body, cell_coords):
     for kind, v, where in _walk(body):
         if kind == "key":
             assert v.lower() not in BANNED_KEYS, f"banned key {v} at {where}"
+        elif isinstance(v, int) and not isinstance(v, bool):
+            assert not (1_000_000 <= abs(v) < 10_000_000_000), f"id-like integer at {where}: {v}"
         elif isinstance(v, str):
             for rx in BANNED_TEXT:
                 assert not rx.search(v), f"banned text {rx.pattern!r} in {where}: {v[:80]}"
-        elif (isinstance(v, float) and round(v, 2) != v  # times are 2-decimal; coordinates carry more
-              and (36.5 < abs(v) < 38.0 or 79.0 < abs(v) < 81.0)):
+        elif (isinstance(v, float) and (36.5 < abs(v) < 38.0 or 79.0 < abs(v) < 81.0)
+              and (round(v, 2) != v or where.split(".")[-1].split("[")[0] in COORD_KEYS)):
             assert round(v, 5) in cell_coords, f"coordinate finer than a cell at {where}: {v}"
 
 
